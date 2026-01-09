@@ -66,12 +66,18 @@ namespace MovieBooking.Application.Services
 
             var Credentials = new SigningCredentials(Key, SecurityAlgorithms.HmacSha256);
 
+            //var Claims = new[]
+            //{
+            //new Claim(JwtRegisteredClaimNames.Sub, User.UserId.ToString()),
+            //new Claim(JwtRegisteredClaimNames.Email, User.Email),
+            //new Claim(ClaimTypes.Role, User.Role.ToString())
+            //};
             var Claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, User.UserId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, User.Email),
-            new Claim(ClaimTypes.Role, User.Role.ToString())
-        };
+                new Claim(ClaimTypes.NameIdentifier, User.UserId.ToString()), // 🔥 CHANGE
+                new Claim(ClaimTypes.Email, User.Email),
+                new Claim(ClaimTypes.Role, User.Role.ToString())
+            };
 
             var Token = new JwtSecurityToken(
                 issuer: Configuration["Jwt:Issuer"],
