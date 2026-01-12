@@ -37,28 +37,28 @@ namespace MovieBooking.Api
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.Http,   //  FIX
-                    Scheme = "Bearer",                //  FIX
+                    Type = SecuritySchemeType.Http, 
+                    Scheme = "Bearer",                
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
                     Description = "Enter ONLY the token (without 'Bearer ')"
                 });
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-            });
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+                        });
 
 
             builder.Services.AddDbContext<MovieBookingDatabaseContext>(options =>

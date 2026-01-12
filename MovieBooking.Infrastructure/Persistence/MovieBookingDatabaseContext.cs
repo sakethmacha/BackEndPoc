@@ -28,76 +28,48 @@ namespace MovieBooking.Infrastructure.Persistence
             {
                 entity.HasKey(u => u.UserId);
 
-                entity.HasIndex(u => u.Email)
-                      .IsUnique();
+                entity.HasIndex(u => u.Email).IsUnique();
 
-                entity.Property(u => u.Name)
-                      .IsRequired();
-
-                entity.Property(u => u.Email)
-                      .IsRequired();
-
-                entity.Property(u => u.Password)
-                      .IsRequired();
-
-                entity.Property(u => u.Role)
-                      .IsRequired();
-
-                entity.Property(u => u.IsActive)
-                      .IsRequired();
+                entity.Property(u => u.Name).IsRequired();
+                entity.Property(u => u.Email).IsRequired();
+                entity.Property(u => u.Password).IsRequired();
+                entity.Property(u => u.Role).IsRequired();
+                entity.Property(u => u.IsActive).IsRequired();
 
                 entity.Property(u => u.CreatedAt)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
 
-         
             modelBuilder.Entity<Movie>(entity =>
             {
                 entity.HasKey(m => m.MovieId);
 
-                entity.Property(m => m.Title)
-                      .IsRequired();
-
-                entity.Property(m => m.Description);
-
-                entity.Property(m => m.DurationMinutes)
-                      .IsRequired();
-
-                entity.Property(m => m.ReleaseDate)
-                      .IsRequired();
-
-                entity.Property(m => m.IsActive)
-                      .IsRequired();
+                entity.Property(m => m.Title).IsRequired();
+                entity.Property(m => m.DurationMinutes).IsRequired();
+                entity.Property(m => m.ReleaseDate).IsRequired();
+                entity.Property(m => m.IsActive).IsRequired();
+                entity.Property(m => m.PosterUrl).HasMaxLength(500);
 
                 entity.Property(m => m.CreatedAt)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
 
-            
+           
             modelBuilder.Entity<Theatre>(entity =>
             {
                 entity.HasKey(t => t.TheatreId);
 
-                entity.Property(t => t.Name)
-                      .IsRequired();
-
-                entity.Property(t => t.Location)
-                      .IsRequired();
-
-                entity.Property(t => t.CreatedBy)
-                      .IsRequired();
-
-                entity.Property(t => t.ApprovalStatus)
-                      .IsRequired();
-
-                entity.Property(t => t.IsActive)
-                      .IsRequired();
+                entity.Property(t => t.Name).IsRequired();
+                entity.Property(t => t.Location).IsRequired();
+                entity.Property(t => t.CreatedBy).IsRequired();
+                entity.Property(t => t.ApprovalStatus).IsRequired();
+                entity.Property(t => t.IsActive).IsRequired();
 
                 entity.Property(t => t.CreatedAt)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
 
-           
+
             modelBuilder.Entity<Screen>(entity =>
             {
                 entity.HasKey(s => s.ScreenId);
@@ -112,44 +84,48 @@ namespace MovieBooking.Infrastructure.Persistence
                       .IsRequired();
 
                 entity.HasOne<Theatre>()
-                      .WithMany()
+                      .WithMany(t => t.Screens)
                       .HasForeignKey(s => s.TheatreId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            
+
+            modelBuilder.Entity<Language>(entity =>
+            {
+                entity.HasKey(l => l.LanguageId);
+                entity.Property(l => l.Name).IsRequired();
+                entity.HasIndex(l => l.Name).IsUnique();
+            });
+
+          
             modelBuilder.Entity<ShowTime>(entity =>
             {
                 entity.HasKey(st => st.ShowTimeId);
 
-                entity.Property(st => st.StartTime)
-                      .IsRequired();
+                entity.Property(st => st.StartTime).IsRequired();
+                entity.Property(st => st.EndTime).IsRequired();
+                entity.Property(st => st.BasePrice).HasPrecision(10, 2);
+                entity.Property(st => st.ApprovalStatus).IsRequired();
+                entity.Property(st => st.IsActive).IsRequired();
 
-                entity.Property(st => st.EndTime)
-                      .IsRequired();
-
-                entity.Property(st => st.BasePrice)
-                      .HasPrecision(10, 2); // FIXES YOUR WARNING
-
-                entity.Property(st => st.ApprovalStatus)
-                      .IsRequired();
-
-                entity.Property(st => st.IsActive)
-                      .IsRequired();
-
-                entity.HasOne<Movie>()
-                      .WithMany()
+                entity.HasOne(st => st.Movie)
+                      .WithMany(m => m.ShowTimes)
                       .HasForeignKey(st => st.MovieId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<Theatre>()
+                entity.HasOne(st => st.Theatre)
                       .WithMany()
                       .HasForeignKey(st => st.TheatreId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne<Screen>()
-                      .WithMany()
+                entity.HasOne(st => st.Screen)
+                      .WithMany(s => s.ShowTimes)
                       .HasForeignKey(st => st.ScreenId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(st => st.Language)
+                      .WithMany(l => l.ShowTimes)
+                      .HasForeignKey(st => st.LanguageId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -158,26 +134,15 @@ namespace MovieBooking.Infrastructure.Persistence
             {
                 entity.HasKey(ar => ar.AdminRequestId);
 
-                entity.Property(ar => ar.RequestType)
-                      .IsRequired();
-
-                entity.Property(ar => ar.ReferenceId)
-                      .IsRequired();
-
-                entity.Property(ar => ar.Status)
-                      .IsRequired();
+                entity.Property(ar => ar.RequestType).IsRequired();
+                entity.Property(ar => ar.ReferenceId).IsRequired();
+                entity.Property(ar => ar.Status).IsRequired();
 
                 entity.Property(ar => ar.RequestedAt)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
-
-            modelBuilder.Entity<ShowTime>()
-                .HasOne(st => st.Language)
-                .WithMany(l => l.ShowTimes)
-                .HasForeignKey(st => st.LanguageId)
-                .OnDelete(DeleteBehavior.Restrict);
-
         }
+
 
 
 

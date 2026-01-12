@@ -8,7 +8,7 @@ namespace MovieBooking.Api.Controllers
 {
     [ApiController]
     [Route("api/superadmin")]
-    //[Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = "SuperAdmin")]
     public class SuperAdminController : ControllerBase
     {
         private readonly ISuperAdminService _superAdminService;
@@ -41,6 +41,8 @@ namespace MovieBooking.Api.Controllers
         [HttpPost("movies")]
         public async Task<IActionResult> AddMovie(AddMovieDto dto)
         {
+            var isAuth = User.Identity?.IsAuthenticated;
+            var name = User.Identity?.Name;
             await _superAdminService.AddMovieAsync(dto);
             return Ok();
         }
@@ -58,7 +60,7 @@ namespace MovieBooking.Api.Controllers
         {
             //var superAdminId = Guid.Parse(User.FindFirst("UserId")!.Value);
             var superAdminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
+           
             await _superAdminService.AddTheatreAsync(dto, superAdminId);
             return Ok("Theatre added successfully");
         }
@@ -93,5 +95,19 @@ namespace MovieBooking.Api.Controllers
             await _superAdminService.RejectRequestAsync(requestId);
             return Ok();
         }
+
+        [HttpPost("languages")]
+        public async Task<IActionResult> AddLanguage(CreateLanguageDto dto)
+        {
+            await _superAdminService.AddLanguageAsync(dto);
+            return Ok("Language added");
+        }
+
+        [HttpGet("languages")]
+        public async Task<IActionResult> GetLanguages()
+        {
+            return Ok(await _superAdminService.GetLanguagesAsync());
+        }
+
     }
 }

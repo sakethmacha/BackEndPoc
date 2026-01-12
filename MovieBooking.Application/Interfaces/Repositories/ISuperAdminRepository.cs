@@ -26,6 +26,11 @@ namespace MovieBooking.Application.Interfaces.Repositories
         Task ApproveShowTimeAsync(Guid showTimeId);
         Task<Language?> GetLanguageByIdAsync(Guid languageId);
 
+        //
+        Task AddLanguageAsync(Language language);
+        Task<List<Language>> GetLanguagesAsync();
+
+        Task<bool> LanguageExistsAsync(string name);
     }
 
 

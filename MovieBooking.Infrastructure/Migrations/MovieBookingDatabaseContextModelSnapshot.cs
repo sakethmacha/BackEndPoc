@@ -50,7 +50,7 @@ namespace MovieBooking.Infrastructure.Migrations
 
                     b.HasKey("AdminRequestId");
 
-                    b.ToTable("AdminRequests", (string)null);
+                    b.ToTable("AdminRequests");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.AuditLog", b =>
@@ -75,7 +75,25 @@ namespace MovieBooking.Infrastructure.Migrations
 
                     b.HasKey("AuditLogId");
 
-                    b.ToTable("AuditLogs", (string)null);
+                    b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("MovieBooking.Domain.Entities.Language", b =>
+                {
+                    b.Property<Guid>("LanguageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("LanguageId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.Movie", b =>
@@ -101,7 +119,8 @@ namespace MovieBooking.Infrastructure.Migrations
 
                     b.Property<string>("PosterUrl")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("ReleaseDate")
                         .HasColumnType("datetime2");
@@ -112,7 +131,7 @@ namespace MovieBooking.Infrastructure.Migrations
 
                     b.HasKey("MovieId");
 
-                    b.ToTable("Movies", (string)null);
+                    b.ToTable("Movies");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.Screen", b =>
@@ -138,7 +157,7 @@ namespace MovieBooking.Infrastructure.Migrations
 
                     b.HasIndex("TheatreId");
 
-                    b.ToTable("Screens", (string)null);
+                    b.ToTable("Screens");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.ShowTime", b =>
@@ -177,13 +196,15 @@ namespace MovieBooking.Infrastructure.Migrations
 
                     b.HasKey("ShowTimeId");
 
+                    b.HasIndex("LanguageId");
+
                     b.HasIndex("MovieId");
 
                     b.HasIndex("ScreenId");
 
                     b.HasIndex("TheatreId");
 
-                    b.ToTable("ShowTimes", (string)null);
+                    b.ToTable("ShowTimes");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.Theatre", b =>
@@ -216,7 +237,7 @@ namespace MovieBooking.Infrastructure.Migrations
 
                     b.HasKey("TheatreId");
 
-                    b.ToTable("Theatres", (string)null);
+                    b.ToTable("Theatres");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.User", b =>
@@ -253,13 +274,13 @@ namespace MovieBooking.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.Screen", b =>
                 {
                     b.HasOne("MovieBooking.Domain.Entities.Theatre", null)
-                        .WithMany()
+                        .WithMany("Screens")
                         .HasForeignKey("TheatreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -267,23 +288,57 @@ namespace MovieBooking.Infrastructure.Migrations
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.ShowTime", b =>
                 {
-                    b.HasOne("MovieBooking.Domain.Entities.Movie", null)
-                        .WithMany()
+                    b.HasOne("MovieBooking.Domain.Entities.Language", "Language")
+                        .WithMany("ShowTimes")
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MovieBooking.Domain.Entities.Movie", "Movie")
+                        .WithMany("ShowTimes")
                         .HasForeignKey("MovieId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MovieBooking.Domain.Entities.Screen", null)
-                        .WithMany()
+                    b.HasOne("MovieBooking.Domain.Entities.Screen", "Screen")
+                        .WithMany("ShowTimes")
                         .HasForeignKey("ScreenId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MovieBooking.Domain.Entities.Theatre", null)
+                    b.HasOne("MovieBooking.Domain.Entities.Theatre", "Theatre")
                         .WithMany()
                         .HasForeignKey("TheatreId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Language");
+
+                    b.Navigation("Movie");
+
+                    b.Navigation("Screen");
+
+                    b.Navigation("Theatre");
+                });
+
+            modelBuilder.Entity("MovieBooking.Domain.Entities.Language", b =>
+                {
+                    b.Navigation("ShowTimes");
+                });
+
+            modelBuilder.Entity("MovieBooking.Domain.Entities.Movie", b =>
+                {
+                    b.Navigation("ShowTimes");
+                });
+
+            modelBuilder.Entity("MovieBooking.Domain.Entities.Screen", b =>
+                {
+                    b.Navigation("ShowTimes");
+                });
+
+            modelBuilder.Entity("MovieBooking.Domain.Entities.Theatre", b =>
+                {
+                    b.Navigation("Screens");
                 });
 #pragma warning restore 612, 618
         }

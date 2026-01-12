@@ -19,6 +19,10 @@ namespace MovieBooking.Application.Interfaces.Services
 
         Task ApproveRequestAsync(Guid requestId);
         Task RejectRequestAsync(Guid requestId);
+
+        Task AddLanguageAsync(CreateLanguageDto dto);
+        Task<List<LanguageDto>> GetLanguagesAsync();
+
     }
 
 }

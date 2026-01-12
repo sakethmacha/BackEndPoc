@@ -149,5 +149,31 @@ namespace MovieBooking.Application.Services
             request.ReviewedAt = DateTime.UtcNow;
             await _repo.UpdateRequestAsync(request);
         }
+
+        public async Task AddLanguageAsync(CreateLanguageDto dto)
+        {
+            var exists = await _repo.LanguageExistsAsync(dto.Name);
+            if (exists)
+                throw new InvalidOperationException("Language already exists");
+
+            var language = new Language
+            {
+                LanguageId = Guid.NewGuid(),
+                Name = dto.Name.Trim()
+            };
+
+            await _repo.AddLanguageAsync(language);
+        }
+
+        public async Task<List<LanguageDto>> GetLanguagesAsync()
+        {
+            var languages = await _repo.GetLanguagesAsync();
+            return languages.Select(l => new LanguageDto
+            {
+                LanguageId = l.LanguageId,
+                Name = l.Name
+            }).ToList();
+        }
+
     }
 }

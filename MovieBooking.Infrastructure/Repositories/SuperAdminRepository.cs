@@ -109,5 +109,24 @@ namespace MovieBooking.Infrastructure.Repositories
             showTime.IsActive = true;
             showTime.ApprovalStatus = ApprovalStatus.APPROVED;
         }
+
+        public async Task AddLanguageAsync(Language language)
+        {
+            _db.Languages.Add(language);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<Language>> GetLanguagesAsync()
+        {
+            return await _db.Languages
+                            .OrderBy(l => l.Name)
+                            .ToListAsync();
+        }
+        public async Task<bool> LanguageExistsAsync(string name)
+        {
+            return await _db.Languages
+                .AnyAsync(l => l.Name.ToLower() == name.ToLower());
+        }
+
     }
 }
