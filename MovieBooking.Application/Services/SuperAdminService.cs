@@ -57,7 +57,19 @@ namespace MovieBooking.Application.Services
 
             await _repo.AddMovieAsync(movie);
         }
+        public async Task<List<MovieResponse>> GetMoviesAsync()
+        {
+            var movies = await _repo.GetAllAsync();
 
+            return movies.Select(m => new MovieResponse
+            {
+                Id = m.MovieId,
+                Title = m.Title,
+                DurationMinutes = m.DurationMinutes,
+                ReleaseDate = m.ReleaseDate,
+                IsActive = m.IsActive
+            }).ToList();
+        }
         public async Task ToggleMovieAsync(Guid movieId)
         {
             var movie = await _repo.GetMovieByIdAsync(movieId);
@@ -174,6 +186,59 @@ namespace MovieBooking.Application.Services
                 Name = l.Name
             }).ToList();
         }
+        public async Task<List<TheatreResponseDto>> GetTheatresAsync()
+        {
+            var theatres = await _repo.GetTheatresAsync();
 
+            return theatres.Select(t => new TheatreResponseDto
+            {
+                TheatreId = t.TheatreId,
+                Name = t.Name,
+                Location = t.Location,
+                IsActive = t.IsActive
+            }).ToList();
+        }
+        // ---------- SCREENS ----------
+        public async Task<List<ScreenResponseDto>> GetScreensAsync()
+        {
+            var screens = await _repo.GetScreensAsync();
+
+            return screens.Select(s => new ScreenResponseDto
+            {
+                ScreenId = s.ScreenId,
+                ScreenName = s.ScreenName,
+                TheatreId = s.TheatreId,
+                SeatLayoutType = s.SeatLayoutType
+            }).ToList();
+        }
+
+        // ---------- SHOWTIMES ----------
+        public async Task<List<ShowTimeResponseDto>> GetShowTimesAsync()
+        {
+            var showTimes = await _repo.GetShowTimesAsync();
+
+            return showTimes.Select(st => new ShowTimeResponseDto
+            {
+                ShowTimeId = st.ShowTimeId,
+                MovieId = st.MovieId,
+                TheatreId = st.TheatreId,
+                ScreenId = st.ScreenId,
+                StartTime = st.StartTime,
+                EndTime = st.EndTime,
+                BasePrice = st.BasePrice
+            }).ToList();
+        }
+        public async Task<List<ScreenResponseDto>> GetScreensByTheatreAsync(Guid theatreId)
+        {
+            var screens = await _repo.GetByTheatreIdAsync(theatreId);
+
+            return screens.Select(s => new ScreenResponseDto
+            {
+                ScreenId = s.ScreenId,
+                TheatreId = s.TheatreId,
+                ScreenName = s.ScreenName,
+                SeatLayoutType = s.SeatLayoutType
+            }).ToList();
+        }
     }
 }

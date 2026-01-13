@@ -31,6 +31,13 @@ namespace MovieBooking.Application.Interfaces.Repositories
         Task<List<Language>> GetLanguagesAsync();
 
         Task<bool> LanguageExistsAsync(string name);
+        Task<List<Movie>> GetAllAsync();
+
+        Task<List<Theatre>> GetTheatresAsync();
+        Task<List<Screen>> GetScreensAsync();
+
+        Task<List<ShowTime>> GetShowTimesAsync();
+        Task<List<Screen>> GetByTheatreIdAsync(Guid theatreId);
     }
 
 

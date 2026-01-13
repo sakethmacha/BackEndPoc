@@ -11,6 +11,7 @@ using MovieBooking.Infrastructure.Repositories;
 using MovieBooking.Infrastructure.Seed;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace MovieBooking.Api
 {
@@ -60,6 +61,14 @@ namespace MovieBooking.Api
                 });
                         });
 
+            
+
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(
+                        new JsonStringEnumConverter());
+                });
 
             builder.Services.AddDbContext<MovieBookingDatabaseContext>(options =>
             options.UseSqlServer(

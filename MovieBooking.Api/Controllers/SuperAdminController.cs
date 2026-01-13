@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
 using System.Security.Claims;
@@ -53,6 +54,12 @@ namespace MovieBooking.Api.Controllers
             await _superAdminService.ToggleMovieAsync(movieId);
             return Ok();
         }
+        [HttpGet("movies")]
+        public async Task<IActionResult> GetMovies()
+        {
+            var movies = await _superAdminService.GetMoviesAsync();
+            return Ok(movies);
+        }
 
         // ---------- THEATRE ----------
         [HttpPost("theatres")]
@@ -64,15 +71,27 @@ namespace MovieBooking.Api.Controllers
             await _superAdminService.AddTheatreAsync(dto, superAdminId);
             return Ok("Theatre added successfully");
         }
+        [HttpGet("theatres")]
+        public async Task<IActionResult> GetTheatres()
+        {
+            var theatres = await _superAdminService.GetTheatresAsync();
+            return Ok(theatres);
+        }
 
-        // ---------- SCREEN ----------
         [HttpPost("screens")]
         public async Task<IActionResult> AddScreen(CreateScreenDto dto)
         {
+            if (dto == null)
+                return BadRequest("Screen data is required");
             await _superAdminService.AddScreenAsync(dto);
             return Ok("Screen added successfully");
         }
-
+        [HttpGet("screens")]
+        public async Task<IActionResult> GetScreens()
+        {
+            var screens = await _superAdminService.GetScreensAsync();
+            return Ok(screens);
+        }
         // ---------- SHOWTIME ----------
         [HttpPost("showtimes")]
         public async Task<IActionResult> AddShowTime(CreateShowTimeDto dto)
@@ -80,13 +99,27 @@ namespace MovieBooking.Api.Controllers
             await _superAdminService.AddShowTimeAsync(dto);
             return Ok("ShowTime added successfully");
         }
-
+        [HttpGet("showtimes")]
+        public async Task<IActionResult> GetShowTimes()
+        {
+            var showTimes = await _superAdminService.GetShowTimesAsync();
+            return Ok(showTimes);
+        }
         // ---------- APPROVAL ----------
         [HttpPut("requests/{requestId}/approve")]
         public async Task<IActionResult> ApproveRequest(Guid requestId)
         {
             await _superAdminService.ApproveRequestAsync(requestId);
             return Ok();
+        }
+        [HttpGet("screens/by-theatre/{theatreId}")]
+        public async Task<IActionResult> GetScreensByTheatre(Guid theatreId)
+        {
+            if (theatreId == Guid.Empty)
+                return BadRequest("Invalid theatre id");
+
+            var screens = await _superAdminService.GetScreensByTheatreAsync(theatreId);
+            return Ok(screens);
         }
 
         [HttpPut("requests/{requestId}/reject")]

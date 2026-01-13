@@ -66,15 +66,9 @@ namespace MovieBooking.Application.Services
 
             var Credentials = new SigningCredentials(Key, SecurityAlgorithms.HmacSha256);
 
-            //var Claims = new[]
-            //{
-            //new Claim(JwtRegisteredClaimNames.Sub, User.UserId.ToString()),
-            //new Claim(JwtRegisteredClaimNames.Email, User.Email),
-            //new Claim(ClaimTypes.Role, User.Role.ToString())
-            //};
             var Claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, User.UserId.ToString()), // 🔥 CHANGE
+                new Claim(ClaimTypes.NameIdentifier, User.UserId.ToString()), //  CHANGE
                 new Claim(ClaimTypes.Email, User.Email),
                 new Claim(ClaimTypes.Role, User.Role.ToString())
             };
@@ -83,7 +77,7 @@ namespace MovieBooking.Application.Services
                 issuer: Configuration["Jwt:Issuer"],
                 audience: Configuration["Jwt:Audience"],
                 claims: Claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddDays(1),
                 signingCredentials: Credentials
             );
 

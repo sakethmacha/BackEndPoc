@@ -49,7 +49,13 @@ namespace MovieBooking.Infrastructure.Repositories
             _db.Movies.Add(movie);
             await _db.SaveChangesAsync();
         }
-
+        public async Task<List<Movie>> GetAllAsync()
+        {
+            return await _db.Movies
+                .AsNoTracking()
+                .OrderByDescending(m => m.ReleaseDate)
+                .ToListAsync();
+        }
         public Task<Movie> GetMovieByIdAsync(Guid movieId)
             => _db.Movies.FindAsync(movieId).AsTask();
 
@@ -64,12 +70,15 @@ namespace MovieBooking.Infrastructure.Repositories
             _db.Theatres.Add(theatre);
             await _db.SaveChangesAsync();
         }
-
+        public async Task<List<Theatre>> GetTheatresAsync()
+       => await _db.Theatres.AsNoTracking().ToListAsync();
         public async Task AddScreenAsync(Screen screen)
         {
             _db.Screens.Add(screen);
             await _db.SaveChangesAsync();
         }
+        public async Task<List<Screen>> GetScreensAsync()
+        => await _db.Screens.AsNoTracking().ToListAsync();
         public async Task<Language?> GetLanguageByIdAsync(Guid languageId)
         {
             return await _db.Languages.FindAsync(languageId);
@@ -80,7 +89,8 @@ namespace MovieBooking.Infrastructure.Repositories
             _db.ShowTimes.Add(showTime);
             await _db.SaveChangesAsync();
         }
-
+        public async Task<List<ShowTime>> GetShowTimesAsync()
+        => await _db.ShowTimes.AsNoTracking().ToListAsync();
         public Task<AdminRequest> GetRequestByIdAsync(Guid requestId)
             => _db.AdminRequests.FindAsync(requestId).AsTask();
 
@@ -96,7 +106,13 @@ namespace MovieBooking.Infrastructure.Repositories
             theatre.IsActive = true;
             theatre.ApprovalStatus = ApprovalStatus.APPROVED;
         }
-
+        public async Task<List<Screen>> GetByTheatreIdAsync(Guid theatreId)
+        {
+            return await _db.Screens
+                .Where(s => s.TheatreId == theatreId && s.IsActive)
+                .OrderBy(s => s.ScreenName)
+                .ToListAsync();
+        }
         public async Task ApproveScreenAsync(Guid screenId)
         {
             var screen = await _db.Screens.FindAsync(screenId);
@@ -127,6 +143,6 @@ namespace MovieBooking.Infrastructure.Repositories
             return await _db.Languages
                 .AnyAsync(l => l.Name.ToLower() == name.ToLower());
         }
-
+       
     }
 }

@@ -22,7 +22,13 @@ namespace MovieBooking.Application.Interfaces.Services
 
         Task AddLanguageAsync(CreateLanguageDto dto);
         Task<List<LanguageDto>> GetLanguagesAsync();
+        Task<List<MovieResponse>> GetMoviesAsync();
+        Task<List<TheatreResponseDto>> GetTheatresAsync();
+        Task<List<ScreenResponseDto>> GetScreensAsync();
+        Task<List<ShowTimeResponseDto>> GetShowTimesAsync();
 
+        Task<List<ScreenResponseDto>> GetScreensByTheatreAsync(Guid theatreId);
     }
-
 }
+
+
