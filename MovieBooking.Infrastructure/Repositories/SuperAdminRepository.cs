@@ -83,14 +83,44 @@ namespace MovieBooking.Infrastructure.Repositories
         {
             return await _db.Languages.FindAsync(languageId);
         }
+        public async Task AddSeatsAsync(List<Seat> seats)
+        {
+            _db.Seats.AddRange(seats);
+            await _db.SaveChangesAsync();
+        }
 
         public async Task AddShowTimeAsync(ShowTime showTime)
         {
+            var newStart = showTime.StartTime;
+            var newEnd = showTime.EndTime;
+
+            bool conflictExists = await _db.ShowTimes.AnyAsync(st =>
+                st.ScreenId == showTime.ScreenId &&
+                st.StartTime < newEnd &&
+                newStart < st.EndTime
+            );
+
+            if (conflictExists)
+            {
+                throw new InvalidOperationException(
+                    "This screen already has a showtime during the selected time.");
+            }
+
             _db.ShowTimes.Add(showTime);
             await _db.SaveChangesAsync();
         }
         public async Task<List<ShowTime>> GetShowTimesAsync()
-        => await _db.ShowTimes.AsNoTracking().ToListAsync();
+        {
+            return await _db.ShowTimes
+                .Include(st => st.Movie)
+                .Include(st => st.Theatre)
+                .Include(st => st.Screen)
+                .Include(st => st.Language)
+                .AsNoTracking()
+                .OrderBy(st => st.StartTime)
+                .ToListAsync();
+        }
+
         public Task<AdminRequest> GetRequestByIdAsync(Guid requestId)
             => _db.AdminRequests.FindAsync(requestId).AsTask();
 

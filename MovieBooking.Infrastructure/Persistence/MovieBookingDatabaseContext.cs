@@ -19,6 +19,7 @@ namespace MovieBooking.Infrastructure.Persistence
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         public DbSet<Language> Languages => Set<Language>();
+        public DbSet<Seat> Seats => Set<Seat>();
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -141,10 +142,24 @@ namespace MovieBooking.Infrastructure.Persistence
                 entity.Property(ar => ar.RequestedAt)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
+
+            modelBuilder.Entity<Seat>(entity =>
+            {
+                entity.HasKey(s => s.SeatId);
+
+                entity.Property(s => s.SeatRow).IsRequired();
+                entity.Property(s => s.SeatColumn).IsRequired();
+                entity.Property(s => s.PriceMultiplier).HasPrecision(5, 2);
+                entity.Property(s => s.IsActive).IsRequired();
+
+                entity.HasOne(s => s.Screen)
+                      .WithMany(sc => sc.Seats)
+                      .HasForeignKey(s => s.ScreenId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
         }
-
-
-
 
     }
 

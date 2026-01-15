@@ -4,6 +4,5 @@
     {
         STANDARD=0,
         VIP=1,
-        MIXED=2
     }
 }

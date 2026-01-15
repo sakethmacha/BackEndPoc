@@ -57,19 +57,21 @@ namespace MovieBooking.Application.Services
 
             await _repo.AddMovieAsync(movie);
         }
+
         public async Task<List<MovieResponse>> GetMoviesAsync()
         {
             var movies = await _repo.GetAllAsync();
 
             return movies.Select(m => new MovieResponse
             {
-                Id = m.MovieId,
+                MovieId = m.MovieId,
                 Title = m.Title,
                 DurationMinutes = m.DurationMinutes,
                 ReleaseDate = m.ReleaseDate,
                 IsActive = m.IsActive
             }).ToList();
         }
+
         public async Task ToggleMovieAsync(Guid movieId)
         {
             var movie = await _repo.GetMovieByIdAsync(movieId);
@@ -93,19 +95,88 @@ namespace MovieBooking.Application.Services
             await _repo.AddTheatreAsync(theatre);
         }
 
-        public async Task AddScreenAsync(CreateScreenDto dto)
+        // This method is called by the Controller
+        public async Task AddScreenAsync(CreateScreenRequest request)
         {
-            var screen = new Screen
+            if (request.SeatRows == null || !request.SeatRows.Any())
+                throw new InvalidOperationException("Seat layout is required");
+
+            // ✅ parse SeatLayoutType (string → enum)
+            if (!Enum.TryParse<SeatLayoutType>(
+                    request.SeatLayoutType, true, out var layoutType))
+                throw new InvalidOperationException("Invalid seat layout type");
+
+            var seatRows = new List<CreateSeatRowDto>();
+
+            foreach (var row in request.SeatRows)
             {
-                ScreenId = Guid.NewGuid(),
-                TheatreId = dto.TheatreId,
-                ScreenName = dto.ScreenName,
-                SeatLayoutType = dto.SeatLayoutType,
-                IsActive = true
+                // ✅ parse SeatType (string → enum)
+                if (!Enum.TryParse<SeatType>(
+                        row.SeatType, true, out var seatType))
+                    throw new InvalidOperationException(
+                        $"Invalid seat type: {row.SeatType}");
+
+                seatRows.Add(new CreateSeatRowDto
+                {
+                    SeatRow = row.SeatRow,
+                    SeatCount = row.SeatCount,
+                    SeatType = seatType,              // enum stored
+                    PriceMultiplier = row.PriceMultiplier
+                });
+            }
+
+            // build application DTO (ENUMS ONLY)
+            var dto = new CreateScreenDto
+            {
+                TheatreId = request.TheatreId,
+                ScreenName = request.ScreenName,
+                SeatLayoutType = layoutType,          // enum
+                SeatRows = seatRows
             };
 
-            await _repo.AddScreenAsync(screen);
+            await AddScreenInternalAsync(dto);
         }
+        private async Task AddScreenInternalAsync(CreateScreenDto dto)
+{
+    // 🔐 validations (enum-safe)
+    if (dto.SeatRows.Select(r => r.SeatRow).Distinct().Count()
+        != dto.SeatRows.Count)
+        throw new InvalidOperationException("Duplicate seat rows are not allowed");
+
+    var screen = new Screen
+    {
+        ScreenId = Guid.NewGuid(),
+        TheatreId = dto.TheatreId,
+        ScreenName = dto.ScreenName,
+        SeatLayoutType = dto.SeatLayoutType, // enum ✅
+        IsActive = true
+    };
+
+    await _repo.AddScreenAsync(screen);
+
+    var seats = new List<Seat>();
+
+    foreach (var row in dto.SeatRows)
+    {
+        for (int col = 1; col <= row.SeatCount; col++)
+        {
+            seats.Add(new Seat
+            {
+                SeatId = Guid.NewGuid(),
+                ScreenId = screen.ScreenId,
+                SeatRow = row.SeatRow,
+                SeatColumn = col,
+                SeatType = row.SeatType,       // enum ✅
+                PriceMultiplier = row.PriceMultiplier,
+                IsActive = true
+            });
+        }
+    }
+
+    await _repo.AddSeatsAsync(seats);
+}
+
+
 
         public async Task AddShowTimeAsync(CreateShowTimeDto dto)
         {
@@ -220,14 +291,18 @@ namespace MovieBooking.Application.Services
             return showTimes.Select(st => new ShowTimeResponseDto
             {
                 ShowTimeId = st.ShowTimeId,
-                MovieId = st.MovieId,
-                TheatreId = st.TheatreId,
-                ScreenId = st.ScreenId,
+
+                MovieTitle = st.Movie.Title,
+                TheatreName = st.Theatre.Name,
+                ScreenName = st.Screen.ScreenName,
+                LanguageName = st.Language.Name,
+
                 StartTime = st.StartTime,
                 EndTime = st.EndTime,
                 BasePrice = st.BasePrice
             }).ToList();
         }
+
         public async Task<List<ScreenResponseDto>> GetScreensByTheatreAsync(Guid theatreId)
         {
             var screens = await _repo.GetByTheatreIdAsync(theatreId);

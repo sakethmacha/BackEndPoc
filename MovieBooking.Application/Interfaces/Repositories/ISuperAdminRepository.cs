@@ -38,6 +38,7 @@ namespace MovieBooking.Application.Interfaces.Repositories
 
         Task<List<ShowTime>> GetShowTimesAsync();
         Task<List<Screen>> GetByTheatreIdAsync(Guid theatreId);
+        Task AddSeatsAsync(List<Seat> seats);
     }
 
 

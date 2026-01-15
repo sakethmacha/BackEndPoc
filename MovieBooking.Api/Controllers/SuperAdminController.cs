@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Enums;
 using System.Security.Claims;
-
 namespace MovieBooking.Api.Controllers
 {
     [ApiController]
@@ -79,13 +79,18 @@ namespace MovieBooking.Api.Controllers
         }
 
         [HttpPost("screens")]
-        public async Task<IActionResult> AddScreen(CreateScreenDto dto)
+        public async Task<IActionResult> AddScreen(CreateScreenRequest request)
         {
-            if (dto == null)
-                return BadRequest("Screen data is required");
-            await _superAdminService.AddScreenAsync(dto);
+            if (request == null)
+                return BadRequest("Invalid request");
+
+            await _superAdminService.AddScreenAsync(request);
+
             return Ok("Screen added successfully");
         }
+
+
+        
         [HttpGet("screens")]
         public async Task<IActionResult> GetScreens()
         {

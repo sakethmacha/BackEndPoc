@@ -14,7 +14,7 @@ namespace MovieBooking.Application.Interfaces.Services
         Task ToggleMovieAsync(Guid movieId);
 
         Task AddTheatreAsync(CreateTheatreDto dto, Guid superAdminId);
-        Task AddScreenAsync(CreateScreenDto dto);
+        Task AddScreenAsync(CreateScreenRequest dto);
         Task AddShowTimeAsync(CreateShowTimeDto dto);
 
         Task ApproveRequestAsync(Guid requestId);
