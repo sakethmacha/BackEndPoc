@@ -89,26 +89,7 @@ namespace MovieBooking.Infrastructure.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task AddShowTimeAsync(ShowTime showTime)
-        {
-            var newStart = showTime.StartTime;
-            var newEnd = showTime.EndTime;
-
-            bool conflictExists = await _db.ShowTimes.AnyAsync(st =>
-                st.ScreenId == showTime.ScreenId &&
-                st.StartTime < newEnd &&
-                newStart < st.EndTime
-            );
-
-            if (conflictExists)
-            {
-                throw new InvalidOperationException(
-                    "This screen already has a showtime during the selected time.");
-            }
-
-            _db.ShowTimes.Add(showTime);
-            await _db.SaveChangesAsync();
-        }
+  
         public async Task<List<ShowTime>> GetShowTimesAsync()
         {
             return await _db.ShowTimes
@@ -119,6 +100,19 @@ namespace MovieBooking.Infrastructure.Repositories
                 .AsNoTracking()
                 .OrderBy(st => st.StartTime)
                 .ToListAsync();
+        }
+        public async Task<List<TheatreTimeSlot>> GetTimeSlotsByTheatreAsync(Guid theatreId)
+        {
+            return await _db.TheatreTimeSlots
+                .Where(t => t.TheatreId == theatreId && t.IsActive)
+                .OrderBy(t => t.StartTime)
+                .ToListAsync();
+        }
+
+        public async Task AddShowTimesAsync(List<ShowTime> showTimes)
+        {
+            _db.ShowTimes.AddRange(showTimes);
+            await _db.SaveChangesAsync();
         }
 
         public Task<AdminRequest> GetRequestByIdAsync(Guid requestId)
@@ -148,12 +142,28 @@ namespace MovieBooking.Infrastructure.Repositories
             var screen = await _db.Screens.FindAsync(screenId);
             screen.IsActive = true;
         }
+        public async Task<bool> ShowTimeConflictExistsAsync(
+    Guid screenId, DateTime start, DateTime end)
+        {
+            return await _db.ShowTimes.AnyAsync(st =>
+                st.ScreenId == screenId &&
+                st.StartTime < end &&
+                start < st.EndTime);
+        }
 
         public async Task ApproveShowTimeAsync(Guid showTimeId)
         {
             var showTime = await _db.ShowTimes.FindAsync(showTimeId);
             showTime.IsActive = true;
             showTime.ApprovalStatus = ApprovalStatus.APPROVED;
+        }
+        public async Task AddTheatreWithTimeSlotsAsync(
+    Theatre theatre,
+    List<TheatreTimeSlot> timeSlots)
+        {
+            _db.Theatres.Add(theatre);
+            _db.TheatreTimeSlots.AddRange(timeSlots);
+            await _db.SaveChangesAsync();
         }
 
         public async Task AddLanguageAsync(Language language)

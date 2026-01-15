@@ -78,9 +78,45 @@ namespace MovieBooking.Application.Services
             movie.IsActive = !movie.IsActive;
             await _repo.UpdateMovieAsync(movie);
         }
-
         public async Task AddTheatreAsync(CreateTheatreDto dto, Guid superAdminId)
         {
+            if (dto.TimeSlots == null || !dto.TimeSlots.Any())
+                throw new InvalidOperationException(
+                    "At least one show timing must be configured");
+
+            // 1️⃣ Parse + normalize times
+            var parsedSlots = dto.TimeSlots.Select(ts =>
+            {
+                if (!TimeOnly.TryParse(ts.StartTime, out var start))
+                    throw new InvalidOperationException(
+                        $"Invalid start time: {ts.StartTime}");
+
+                if (!TimeOnly.TryParse(ts.EndTime, out var end))
+                    throw new InvalidOperationException(
+                        $"Invalid end time: {ts.EndTime}");
+
+                if (end <= start)
+                    throw new InvalidOperationException(
+                        "End time must be greater than start time");
+
+                return new
+                {
+                    Start = start,
+                    End = end
+                };
+            })
+            .OrderBy(x => x.Start)
+            .ToList();
+
+            // 2️⃣ Check overlapping slots
+            for (int i = 0; i < parsedSlots.Count - 1; i++)
+            {
+                if (parsedSlots[i].End > parsedSlots[i + 1].Start)
+                    throw new InvalidOperationException(
+                        "Theatre show timings cannot overlap");
+            }
+
+            // 3️⃣ Create theatre
             var theatre = new Theatre
             {
                 TheatreId = Guid.NewGuid(),
@@ -92,8 +128,20 @@ namespace MovieBooking.Application.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repo.AddTheatreAsync(theatre);
+            // 4️⃣ Create TheatreTimeSlot entities
+            var timeSlots = parsedSlots.Select(p => new TheatreTimeSlot
+            {
+                TheatreTimeSlotId = Guid.NewGuid(),
+                TheatreId = theatre.TheatreId,
+                StartTime = p.Start,
+                EndTime = p.End,
+                IsActive = true
+            }).ToList();
+
+            // 5️⃣ Persist
+            await _repo.AddTheatreWithTimeSlotsAsync(theatre, timeSlots);
         }
+
 
         // This method is called by the Controller
         public async Task AddScreenAsync(CreateScreenRequest request)
@@ -180,26 +228,44 @@ namespace MovieBooking.Application.Services
 
         public async Task AddShowTimeAsync(CreateShowTimeDto dto)
         {
-            //  Validate Language
-            var language = await _repo.GetLanguageByIdAsync(dto.LanguageId);
-            if (language == null)
-                throw new InvalidOperationException("Invalid language");
+            // 1️⃣ Get theatre timings
+            var slots = await _repo.GetTimeSlotsByTheatreAsync(dto.TheatreId);
 
-            var showTime = new ShowTime
+            if (!slots.Any())
+                throw new InvalidOperationException(
+                    "Theatre has no configured time slots");
+
+            var showTimes = new List<ShowTime>();
+
+            foreach (var slot in slots)
             {
-                ShowTimeId = Guid.NewGuid(),
-                MovieId = dto.MovieId,
-                TheatreId = dto.TheatreId,
-                ScreenId = dto.ScreenId,
-                LanguageId = dto.LanguageId,
-                StartTime = dto.StartTime,
-                EndTime = dto.EndTime,
-                BasePrice = dto.BasePrice,
-                ApprovalStatus = ApprovalStatus.APPROVED,
-                IsActive = true
-            };
+                var start = dto.ShowDate.ToDateTime(slot.StartTime);
+                var end = dto.ShowDate.ToDateTime(slot.EndTime);
 
-            await _repo.AddShowTimeAsync(showTime);
+               // 2️ Business rule: no conflict per screen
+                bool conflict = await _repo.ShowTimeConflictExistsAsync(
+                    dto.ScreenId, start, end);
+
+                if (conflict)
+                    throw new InvalidOperationException(
+                        "This screen is already scheduled for the selected date");
+
+                showTimes.Add(new ShowTime
+                {
+                    ShowTimeId = Guid.NewGuid(),
+                    TheatreId = dto.TheatreId,
+                    ScreenId = dto.ScreenId,
+                    MovieId = dto.MovieId,
+                    LanguageId = dto.LanguageId,
+                    StartTime = start,
+                    EndTime = end,
+                    BasePrice = dto.BasePrice,
+                    IsActive = true
+                });
+            }
+
+            // 3️⃣ Persist
+            await _repo.AddShowTimesAsync(showTimes);
         }
 
 

@@ -17,6 +17,7 @@ namespace MovieBooking.Infrastructure.Persistence
         public DbSet<Theatre> Theatres => Set<Theatre>();
         public DbSet<AdminRequest> AdminRequests => Set<AdminRequest>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<TheatreTimeSlot> TheatreTimeSlots => Set<TheatreTimeSlot>();
 
         public DbSet<Language> Languages => Set<Language>();
         public DbSet<Seat> Seats => Set<Seat>();
@@ -39,6 +40,18 @@ namespace MovieBooking.Infrastructure.Persistence
 
                 entity.Property(u => u.CreatedAt)
                       .HasDefaultValueSql("GETUTCDATE()");
+            });
+            modelBuilder.Entity<TheatreTimeSlot>(entity =>
+            {
+                entity.HasKey(t => t.TheatreTimeSlotId);
+
+                entity.HasOne(t => t.Theatre)
+                      .WithMany(th => th.TimeSlots)
+                      .HasForeignKey(t => t.TheatreId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(t => new { t.TheatreId, t.StartTime })
+                      .IsUnique();
             });
 
             modelBuilder.Entity<Movie>(entity =>

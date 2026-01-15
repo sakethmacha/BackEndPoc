@@ -13,10 +13,18 @@ namespace MovieBooking.Application.Interfaces.Repositories
         Task AddMovieAsync(Movie movie);
         Task<Movie> GetMovieByIdAsync(Guid movieId);
         Task UpdateMovieAsync(Movie movie);
+        Task<List<TheatreTimeSlot>> GetTimeSlotsByTheatreAsync(Guid theatreId);
+        Task AddShowTimesAsync(List<ShowTime> showTimes);
 
-        Task AddTheatreAsync(Theatre theatre);
+        Task<bool> ShowTimeConflictExistsAsync(
+            Guid screenId,
+            DateTime start,
+            DateTime end);
+
+        Task AddTheatreWithTimeSlotsAsync(Theatre theatre, List<TheatreTimeSlot> timeSlots);
+
         Task AddScreenAsync(Screen screen);
-        Task AddShowTimeAsync(ShowTime showTime);
+        //Task AddShowTimeAsync(ShowTime showTime);
 
         Task<AdminRequest> GetRequestByIdAsync(Guid requestId);
         Task UpdateRequestAsync(AdminRequest request);

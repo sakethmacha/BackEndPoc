@@ -15,6 +15,7 @@ namespace MovieBooking.Domain.Entities
         public DateTime CreatedAt { get; set; }
 
         public ICollection<Screen> Screens { get; set; } = new List<Screen>();
+        public List<TheatreTimeSlot> TimeSlots { get; set; } = new();
     }
 
 }

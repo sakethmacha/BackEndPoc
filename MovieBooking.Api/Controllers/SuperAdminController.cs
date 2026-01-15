@@ -99,11 +99,13 @@ namespace MovieBooking.Api.Controllers
         }
         // ---------- SHOWTIME ----------
         [HttpPost("showtimes")]
-        public async Task<IActionResult> AddShowTime(CreateShowTimeDto dto)
+        public async Task<IActionResult> AddShowTime(CreateShowTimeDto request)
         {
-            await _superAdminService.AddShowTimeAsync(dto);
-            return Ok("ShowTime added successfully");
+            await _superAdminService.AddShowTimeAsync(request);
+
+            return Ok("ShowTimes created successfully");
         }
+
         [HttpGet("showtimes")]
         public async Task<IActionResult> GetShowTimes()
         {
