@@ -79,10 +79,7 @@ namespace MovieBooking.Infrastructure.Repositories
         }
         public async Task<List<Screen>> GetScreensAsync()
         => await _db.Screens.AsNoTracking().ToListAsync();
-        public async Task<Language?> GetLanguageByIdAsync(Guid languageId)
-        {
-            return await _db.Languages.FindAsync(languageId);
-        }
+        
         public async Task AddSeatsAsync(List<Seat> seats)
         {
             _db.Seats.AddRange(seats);
@@ -183,6 +180,180 @@ namespace MovieBooking.Infrastructure.Repositories
             return await _db.Languages
                 .AnyAsync(l => l.Name.ToLower() == name.ToLower());
         }
-       
+        public async Task<Theatre> GetTheatreByIdAsync(Guid theatreId)
+        {
+            var theatre = await _db.Theatres
+                .Include(t => t.TimeSlots)
+                .FirstOrDefaultAsync(t => t.TheatreId == theatreId);
+
+            if (theatre == null)
+                throw new InvalidOperationException("Theatre not found");
+
+            return theatre;
+        }
+
+        public async Task<Screen> GetScreenByIdAsync(Guid screenId)
+        {
+            var screen = await _db.Screens
+                .Include(s => s.Seats)
+                .FirstOrDefaultAsync(s => s.ScreenId == screenId);
+
+            if (screen == null)
+                throw new InvalidOperationException("Screen not found");
+
+            return screen;
+        }
+
+        public async Task<ShowTime> GetShowTimeByIdAsync(Guid showTimeId)
+        {
+            var showTime = await _db.ShowTimes.FindAsync(showTimeId);
+
+            if (showTime == null)
+                throw new InvalidOperationException("ShowTime not found");
+
+            return showTime;
+        }
+
+        public async Task<Language> GetLanguageByIdAsync(Guid languageId)
+        {
+            var language = await _db.Languages.FindAsync(languageId);
+
+            if (language == null)
+                throw new InvalidOperationException("Language not found");
+
+            return language;
+        }
+
+        // ========== UPDATE METHODS ==========
+
+        public async Task UpdateTheatreAsync(Theatre theatre)
+        {
+            _db.Theatres.Update(theatre);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateScreenAsync(Screen screen)
+        {
+            _db.Screens.Update(screen);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateShowTimeAsync(ShowTime showTime)
+        {
+            _db.ShowTimes.Update(showTime);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateLanguageAsync(Language language)
+        {
+            _db.Languages.Update(language);
+            await _db.SaveChangesAsync();
+        }
+
+        // ========== DELETE METHODS ==========
+
+        public async Task DeleteMovieAsync(Movie movie)
+        {
+            _db.Movies.Remove(movie);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteTheatreAsync(Theatre theatre)
+        {
+            _db.Theatres.Remove(theatre);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteScreenAsync(Screen screen)
+        {
+            _db.Screens.Remove(screen);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteShowTimeAsync(ShowTime showTime)
+        {
+            _db.ShowTimes.Remove(showTime);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteLanguageAsync(Language language)
+        {
+            _db.Languages.Remove(language);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteAdminAsync(User admin)
+        {
+            _db.Users.Remove(admin);
+            await _db.SaveChangesAsync();
+        }
+
+        // ========== VALIDATION HELPERS ==========
+
+        public async Task<bool> MovieHasActiveShowTimesAsync(Guid movieId)
+        {
+            return await _db.ShowTimes
+                .AnyAsync(st => st.MovieId == movieId && st.IsActive);
+        }
+
+        public async Task<bool> TheatreHasActiveScreensAsync(Guid theatreId)
+        {
+            return await _db.Screens
+                .AnyAsync(s => s.TheatreId == theatreId && s.IsActive);
+        }
+
+        public async Task<bool> ScreenHasActiveShowTimesAsync(Guid screenId)
+        {
+            return await _db.ShowTimes
+                .AnyAsync(st => st.ScreenId == screenId && st.IsActive);
+        }
+
+        public async Task<bool> LanguageHasActiveShowTimesAsync(Guid languageId)
+        {
+            return await _db.ShowTimes
+                .AnyAsync(st => st.LanguageId == languageId && st.IsActive);
+        }
+
+        public async Task<bool> AdminHasActiveTheatresAsync(Guid adminId)
+        {
+            return await _db.Theatres
+                .AnyAsync(t => t.CreatedBy == adminId && t.IsActive);
+        }
+
+        // ========== CASCADE DELETE HELPERS ==========
+
+        public async Task DeleteTheatreTimeSlotsAsync(Guid theatreId)
+        {
+            var timeSlots = await _db.TheatreTimeSlots
+                .Where(ts => ts.TheatreId == theatreId)
+                .ToListAsync();
+
+            _db.TheatreTimeSlots.RemoveRange(timeSlots);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteScreenSeatsAsync(Guid screenId)
+        {
+            var seats = await _db.Seats
+                .Where(s => s.ScreenId == screenId)
+                .ToListAsync();
+
+            _db.Seats.RemoveRange(seats);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<List<TheatreTimeSlot>> GetTheatreTimeSlotsAsync(Guid theatreId)
+        {
+            return await _db.TheatreTimeSlots
+                .Where(ts => ts.TheatreId == theatreId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Seat>> GetScreenSeatsAsync(Guid screenId)
+        {
+            return await _db.Seats
+                .Where(s => s.ScreenId == screenId)
+                .ToListAsync();
+        }
     }
 }

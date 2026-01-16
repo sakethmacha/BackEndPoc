@@ -28,6 +28,30 @@ namespace MovieBooking.Application.Interfaces.Services
         Task<List<ShowTimeResponseDto>> GetShowTimesAsync();
 
         Task<List<ScreenResponseDto>> GetScreensByTheatreAsync(Guid theatreId);
+
+        // ========== UPDATE METHODS ==========
+        Task UpdateMovieAsync(Guid movieId, UpdateMovieDto dto);
+        Task UpdateTheatreAsync(Guid theatreId, UpdateTheatreDto dto);
+        Task UpdateScreenAsync(Guid screenId, UpdateScreenDto dto);
+        Task UpdateShowTimeAsync(Guid showTimeId, UpdateShowTimeDto dto);
+        Task UpdateLanguageAsync(Guid languageId, UpdateLanguageDto dto);
+        Task UpdateAdminAsync(Guid adminId, UpdateAdminDto dto);
+
+        // ========== DELETE METHODS ==========
+        Task DeleteMovieAsync(Guid movieId);
+        Task DeleteTheatreAsync(Guid theatreId);
+        Task DeleteScreenAsync(Guid screenId);
+        Task DeleteShowTimeAsync(Guid showTimeId);
+        Task DeleteLanguageAsync(Guid languageId);
+        Task DeleteAdminAsync(Guid adminId);
+
+        Task<MovieResponse> GetMovieByIdAsync(Guid movieId);
+        Task<TheatreResponseDto> GetTheatreByIdAsync(Guid theatreId);
+        Task<CreateScreenRequest> GetScreenByIdAsync(Guid screenId);
+        Task<ShowTimeResponseDto> GetShowTimeByIdAsync(Guid showTimeId);
+        Task<LanguageDto> GetLanguageByIdAsync(Guid languageId);
+        Task<AdminDto> GetAdminByIdAsync(Guid adminId);
+
     }
 }
 

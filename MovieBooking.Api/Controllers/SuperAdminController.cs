@@ -148,6 +148,182 @@ namespace MovieBooking.Api.Controllers
         {
             return Ok(await _superAdminService.GetLanguagesAsync());
         }
+        // ---------- MOVIE UPDATE ----------
+        [HttpPut("movies/{movieId}")]
+        public async Task<IActionResult> UpdateMovie(Guid movieId, [FromBody] UpdateMovieDto dto)
+        {
+            if (movieId == Guid.Empty)
+                return BadRequest("Invalid movie ID");
 
+            await _superAdminService.UpdateMovieAsync(movieId, dto);
+            return Ok(new { message = "Movie updated successfully" });
+        }
+
+        // ---------- THEATRE UPDATE ----------
+        [HttpPut("theatres/{theatreId}")]
+        public async Task<IActionResult> UpdateTheatre(Guid theatreId, [FromBody] UpdateTheatreDto dto)
+        {
+            if (theatreId == Guid.Empty)
+                return BadRequest("Invalid theatre ID");
+
+            await _superAdminService.UpdateTheatreAsync(theatreId, dto);
+            return Ok(new { message = "Theatre updated successfully" });
+        }
+
+        // ---------- SCREEN UPDATE ----------
+        [HttpPut("screens/{screenId}")]
+        public async Task<IActionResult> UpdateScreen(Guid screenId, [FromBody] UpdateScreenDto dto)
+        {
+            if (screenId == Guid.Empty)
+                return BadRequest("Invalid screen ID");
+
+            await _superAdminService.UpdateScreenAsync(screenId, dto);
+            return Ok(new { message = "Screen updated successfully" });
+        }
+
+        // ---------- SHOWTIME UPDATE ----------
+        [HttpPut("showtimes/{showTimeId}")]
+        public async Task<IActionResult> UpdateShowTime(Guid showTimeId, [FromBody] UpdateShowTimeDto dto)
+        {
+            if (showTimeId == Guid.Empty)
+                return BadRequest("Invalid showtime ID");
+
+            await _superAdminService.UpdateShowTimeAsync(showTimeId, dto);
+            return Ok(new { message = "ShowTime updated successfully" });
+        }
+
+        // ---------- LANGUAGE UPDATE ----------
+        [HttpPut("languages/{languageId}")]
+        public async Task<IActionResult> UpdateLanguage(Guid languageId, [FromBody] UpdateLanguageDto dto)
+        {
+            if (languageId == Guid.Empty)
+                return BadRequest("Invalid language ID");
+
+            await _superAdminService.UpdateLanguageAsync(languageId, dto);
+            return Ok(new { message = "Language updated successfully" });
+        }
+
+        // ---------- ADMIN UPDATE ----------
+        [HttpPut("admins/{adminId}")]
+        public async Task<IActionResult> UpdateAdmin(Guid adminId, [FromBody] UpdateAdminDto dto)
+        {
+            if (adminId == Guid.Empty)
+                return BadRequest("Invalid admin ID");
+
+            await _superAdminService.UpdateAdminAsync(adminId, dto);
+            return Ok(new { message = "Admin updated successfully" });
+        }
+
+        // ========== DELETE ENDPOINTS ==========
+
+        // ---------- MOVIE DELETE ----------
+        [HttpDelete("movies/{movieId}")]
+        public async Task<IActionResult> DeleteMovie(Guid movieId)
+        {
+            if (movieId == Guid.Empty)
+                return BadRequest("Invalid movie ID");
+
+            await _superAdminService.DeleteMovieAsync(movieId);
+            return Ok(new { message = "Movie deleted successfully" });
+        }
+
+        // ---------- THEATRE DELETE ----------
+        [HttpDelete("theatres/{theatreId}")]
+        public async Task<IActionResult> DeleteTheatre(Guid theatreId)
+        {
+            if (theatreId == Guid.Empty)
+                return BadRequest("Invalid theatre ID");
+
+            await _superAdminService.DeleteTheatreAsync(theatreId);
+            return Ok(new { message = "Theatre deleted successfully" });
+        }
+
+        // ---------- SCREEN DELETE ----------
+        [HttpDelete("screens/{screenId}")]
+        public async Task<IActionResult> DeleteScreen(Guid screenId)
+        {
+            if (screenId == Guid.Empty)
+                return BadRequest("Invalid screen ID");
+
+            await _superAdminService.DeleteScreenAsync(screenId);
+            return Ok(new { message = "Screen deleted successfully" });
+        }
+
+        // ---------- SHOWTIME DELETE ----------
+        [HttpDelete("showtimes/{showTimeId}")]
+        public async Task<IActionResult> DeleteShowTime(Guid showTimeId)
+        {
+            if (showTimeId == Guid.Empty)
+                return BadRequest("Invalid showtime ID");
+
+            await _superAdminService.DeleteShowTimeAsync(showTimeId);
+            return Ok(new { message = "ShowTime deleted successfully" });
+        }
+
+        // ---------- LANGUAGE DELETE ----------
+        [HttpDelete("languages/{languageId}")]
+        public async Task<IActionResult> DeleteLanguage(Guid languageId)
+        {
+            if (languageId == Guid.Empty)
+                return BadRequest("Invalid language ID");
+
+            await _superAdminService.DeleteLanguageAsync(languageId);
+            return Ok(new { message = "Language deleted successfully" });
+        }
+
+        // ---------- ADMIN DELETE ----------
+        [HttpDelete("admins/{adminId}")]
+        public async Task<IActionResult> DeleteAdmin(Guid adminId)
+        {
+            if (adminId == Guid.Empty)
+                return BadRequest("Invalid admin ID");
+
+            await _superAdminService.DeleteAdminAsync(adminId);
+            return Ok(new { message = "Admin deleted successfully" });
+        }
+
+        // ⭐ These endpoints are REQUIRED for update forms
+
+        [HttpGet("movies/{movieId}")]
+        public async Task<IActionResult> GetMovieById(Guid movieId)
+        {
+            var movie = await _superAdminService.GetMovieByIdAsync(movieId);
+            return Ok(movie);
+        }
+
+        [HttpGet("theatres/{theatreId}")]
+        public async Task<IActionResult> GetTheatreById(Guid theatreId)
+        {
+            var theatre = await _superAdminService.GetTheatreByIdAsync(theatreId);
+            return Ok(theatre);
+        }
+
+        [HttpGet("screens/{screenId}")]
+        public async Task<IActionResult> GetScreenById(Guid screenId)
+        {
+            var screen = await _superAdminService.GetScreenByIdAsync(screenId);
+            return Ok(screen);
+        }
+
+        [HttpGet("showtimes/{showTimeId}")]
+        public async Task<IActionResult> GetShowTimeById(Guid showTimeId)
+        {
+            var showTime = await _superAdminService.GetShowTimeByIdAsync(showTimeId);
+            return Ok(showTime);
+        }
+
+        [HttpGet("languages/{languageId}")]
+        public async Task<IActionResult> GetLanguageById(Guid languageId)
+        {
+            var language = await _superAdminService.GetLanguageByIdAsync(languageId);
+            return Ok(language);
+        }
+
+        [HttpGet("admins/{adminId}")]
+        public async Task<IActionResult> GetAdminById(Guid adminId)
+        {
+            var admin = await _superAdminService.GetAdminByIdAsync(adminId);
+            return Ok(admin);
+        }
     }
 }

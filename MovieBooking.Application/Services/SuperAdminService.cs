@@ -381,5 +381,405 @@ namespace MovieBooking.Application.Services
                 SeatLayoutType = s.SeatLayoutType
             }).ToList();
         }
+        // ========== UPDATE METHODS ==========
+
+        public async Task UpdateMovieAsync(Guid movieId, UpdateMovieDto dto)
+        {
+            var movie = await _repo.GetMovieByIdAsync(movieId);
+
+            movie.Title = dto.Title;
+            movie.Description = dto.Description;
+            movie.DurationMinutes = dto.DurationMinutes;
+            movie.ReleaseDate = dto.ReleaseDate;
+            movie.PosterUrl = dto.PosterUrl;
+
+            await _repo.UpdateMovieAsync(movie);
+        }
+
+        public async Task UpdateTheatreAsync(Guid theatreId, UpdateTheatreDto dto)
+        {
+            if (dto.TimeSlots == null || !dto.TimeSlots.Any())
+                throw new InvalidOperationException("At least one show timing must be configured");
+
+            var theatre = await _repo.GetTheatreByIdAsync(theatreId);
+
+            // Validate and parse time slots
+            var parsedSlots = dto.TimeSlots.Select(ts =>
+            {
+                if (!TimeOnly.TryParse(ts.StartTime, out var start))
+                    throw new InvalidOperationException($"Invalid start time: {ts.StartTime}");
+
+                if (!TimeOnly.TryParse(ts.EndTime, out var end))
+                    throw new InvalidOperationException($"Invalid end time: {ts.EndTime}");
+
+                if (end <= start)
+                    throw new InvalidOperationException("End time must be greater than start time");
+
+                return new { Start = start, End = end };
+            })
+            .OrderBy(x => x.Start)
+            .ToList();
+
+            // Check for overlapping slots
+            for (int i = 0; i < parsedSlots.Count - 1; i++)
+            {
+                if (parsedSlots[i].End > parsedSlots[i + 1].Start)
+                    throw new InvalidOperationException("Theatre show timings cannot overlap");
+            }
+
+            // Update theatre details
+            theatre.Name = dto.Name;
+            theatre.Location = dto.Location;
+
+            // Delete existing time slots
+            await _repo.DeleteTheatreTimeSlotsAsync(theatreId);
+
+            // Create new time slots
+            var newTimeSlots = parsedSlots.Select(p => new Domain.Entities.TheatreTimeSlot
+            {
+                TheatreTimeSlotId = Guid.NewGuid(),
+                TheatreId = theatre.TheatreId,
+                StartTime = p.Start,
+                EndTime = p.End,
+                IsActive = true
+            }).ToList();
+
+            await _repo.AddTheatreWithTimeSlotsAsync(theatre, newTimeSlots);
+        }
+
+        public async Task UpdateScreenAsync(Guid screenId, UpdateScreenDto dto)
+        {
+            var screen = await _repo.GetScreenByIdAsync(screenId);
+
+            // Check if screen has active showtimes
+            var hasActiveShowTimes = await _repo.ScreenHasActiveShowTimesAsync(screenId);
+            if (hasActiveShowTimes)
+                throw new InvalidOperationException("Cannot update screen with active showtimes. Please deactivate or delete showtimes first.");
+
+            if (dto.SeatRows == null || !dto.SeatRows.Any())
+                throw new InvalidOperationException("Seat layout is required");
+
+            // Parse SeatLayoutType
+            if (!Enum.TryParse<SeatLayoutType>(dto.SeatLayoutType, true, out var layoutType))
+                throw new InvalidOperationException("Invalid seat layout type");
+
+            var seatRows = new List<CreateSeatRowDto>();
+
+            foreach (var row in dto.SeatRows)
+            {
+                if (!Enum.TryParse<SeatType>(row.SeatType, true, out var seatType))
+                    throw new InvalidOperationException($"Invalid seat type: {row.SeatType}");
+
+                seatRows.Add(new CreateSeatRowDto
+                {
+                    SeatRow = row.SeatRow,
+                    SeatCount = row.SeatCount,
+                    SeatType = seatType,
+                    PriceMultiplier = row.PriceMultiplier
+                });
+            }
+
+            // Validate duplicate rows
+            if (seatRows.Select(r => r.SeatRow).Distinct().Count() != seatRows.Count)
+                throw new InvalidOperationException("Duplicate seat rows are not allowed");
+
+            // Update screen
+            screen.ScreenName = dto.ScreenName;
+            screen.SeatLayoutType = layoutType;
+
+            await _repo.UpdateScreenAsync(screen);
+
+            // Delete existing seats
+            await _repo.DeleteScreenSeatsAsync(screenId);
+
+            // Create new seats
+            var seats = new List<Domain.Entities.Seat>();
+
+            foreach (var row in seatRows)
+            {
+                for (int col = 1; col <= row.SeatCount; col++)
+                {
+                    seats.Add(new Domain.Entities.Seat
+                    {
+                        SeatId = Guid.NewGuid(),
+                        ScreenId = screen.ScreenId,
+                        SeatRow = row.SeatRow,
+                        SeatColumn = col,
+                        SeatType = row.SeatType,
+                        PriceMultiplier = row.PriceMultiplier,
+                        IsActive = true
+                    });
+                }
+            }
+
+            await _repo.AddSeatsAsync(seats);
+        }
+
+        public async Task UpdateShowTimeAsync(Guid showTimeId, UpdateShowTimeDto dto)
+        {
+            var showTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+
+            // Get theatre time slots
+            var slots = await _repo.GetTimeSlotsByTheatreAsync(showTime.TheatreId);
+
+            if (!slots.Any())
+                throw new InvalidOperationException("Theatre has no configured time slots");
+
+            // Use the first slot (or you can modify logic to allow selecting a specific slot)
+            var slot = slots.First();
+
+            var start = dto.ShowDate.ToDateTime(slot.StartTime);
+            var end = dto.ShowDate.ToDateTime(slot.EndTime);
+
+            // Check for conflicts (excluding current showtime)
+            var conflict = await _repo.ShowTimeConflictExistsAsync(showTime.ScreenId, start, end);
+
+            if (conflict)
+            {
+                // Additional check: ensure it's not conflicting with itself
+                var conflictingShowTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+                if (conflictingShowTime.ShowTimeId != showTimeId)
+                    throw new InvalidOperationException("This screen is already scheduled for the selected date");
+            }
+
+            // Update showtime
+            showTime.MovieId = dto.MovieId;
+            showTime.LanguageId = dto.LanguageId;
+            showTime.StartTime = start;
+            showTime.EndTime = end;
+            showTime.BasePrice = dto.BasePrice;
+
+            await _repo.UpdateShowTimeAsync(showTime);
+        }
+
+        public async Task UpdateLanguageAsync(Guid languageId, UpdateLanguageDto dto)
+        {
+            var language = await _repo.GetLanguageByIdAsync(languageId);
+
+            // Check if name already exists (excluding current language)
+            var exists = await _repo.LanguageExistsAsync(dto.Name);
+            if (exists && !language.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Language name already exists");
+
+            language.Name = dto.Name.Trim();
+
+            await _repo.UpdateLanguageAsync(language);
+        }
+
+        public async Task UpdateAdminAsync(Guid adminId, UpdateAdminDto dto)
+        {
+            var admin = await _repo.GetUserByIdAsync(adminId);
+
+            if (admin.Role != UserRole.Admin)
+                throw new InvalidOperationException("User is not an admin");
+
+            admin.Name = dto.Name;
+            admin.Email = dto.Email;
+
+            // Update password only if provided
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                admin.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            }
+
+            await _repo.UpdateUserAsync(admin);
+        }
+
+        // ========== DELETE METHODS ==========
+
+        public async Task DeleteMovieAsync(Guid movieId)
+        {
+            var movie = await _repo.GetMovieByIdAsync(movieId);
+
+            // Check if movie has active showtimes
+            var hasActiveShowTimes = await _repo.MovieHasActiveShowTimesAsync(movieId);
+
+            if (hasActiveShowTimes)
+                throw new InvalidOperationException("Cannot delete movie with active showtimes. Please deactivate or delete showtimes first.");
+
+            await _repo.DeleteMovieAsync(movie);
+        }
+
+        public async Task DeleteTheatreAsync(Guid theatreId)
+        {
+            var theatre = await _repo.GetTheatreByIdAsync(theatreId);
+
+            // Check if theatre has active screens
+            var hasActiveScreens = await _repo.TheatreHasActiveScreensAsync(theatreId);
+
+            if (hasActiveScreens)
+                throw new InvalidOperationException("Cannot delete theatre with active screens. Please deactivate or delete screens first.");
+
+            // Delete time slots first (cascade)
+            await _repo.DeleteTheatreTimeSlotsAsync(theatreId);
+
+            await _repo.DeleteTheatreAsync(theatre);
+        }
+
+        public async Task DeleteScreenAsync(Guid screenId)
+        {
+            var screen = await _repo.GetScreenByIdAsync(screenId);
+
+            // Check if screen has active showtimes
+            var hasActiveShowTimes = await _repo.ScreenHasActiveShowTimesAsync(screenId);
+
+            if (hasActiveShowTimes)
+                throw new InvalidOperationException("Cannot delete screen with active showtimes. Please deactivate or delete showtimes first.");
+
+            // Delete seats first (cascade)
+            await _repo.DeleteScreenSeatsAsync(screenId);
+
+            await _repo.DeleteScreenAsync(screen);
+        }
+
+        public async Task DeleteShowTimeAsync(Guid showTimeId)
+        {
+            var showTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+
+            // You can add additional checks here (e.g., bookings exist)
+            // For now, simple delete
+            await _repo.DeleteShowTimeAsync(showTime);
+        }
+
+        public async Task DeleteLanguageAsync(Guid languageId)
+        {
+            var language = await _repo.GetLanguageByIdAsync(languageId);
+
+            // Check if language has active showtimes
+            var hasActiveShowTimes = await _repo.LanguageHasActiveShowTimesAsync(languageId);
+
+            if (hasActiveShowTimes)
+                throw new InvalidOperationException("Cannot delete language with active showtimes. Please deactivate or delete showtimes first.");
+
+            await _repo.DeleteLanguageAsync(language);
+        }
+
+        public async Task DeleteAdminAsync(Guid adminId)
+        {
+            var admin = await _repo.GetUserByIdAsync(adminId);
+
+            if (admin.Role != UserRole.Admin)
+                throw new InvalidOperationException("User is not an admin");
+
+            // Check if admin has active theatres
+            var hasActiveTheatres = await _repo.AdminHasActiveTheatresAsync(adminId);
+
+            if (hasActiveTheatres)
+                throw new InvalidOperationException("Cannot delete admin with active theatres. Please reassign or delete theatres first.");
+
+            await _repo.DeleteAdminAsync(admin);
+        }
+
+
+        public async Task<MovieResponse> GetMovieByIdAsync(Guid movieId)
+        {
+            var movie = await _repo.GetMovieByIdAsync(movieId);
+
+            return new MovieResponse
+            {
+                MovieId = movie.MovieId,
+                Title = movie.Title,
+                DurationMinutes = movie.DurationMinutes,
+                ReleaseDate = movie.ReleaseDate,
+                IsActive = movie.IsActive
+            };
+        }
+
+        // ⭐ Theatre Details with TimeSlots
+        public async Task<TheatreResponseDto> GetTheatreByIdAsync(Guid theatreId)
+        {
+            var theatre = await _repo.GetTheatreByIdAsync(theatreId);
+
+            return new TheatreResponseDto
+            {
+                TheatreId = theatre.TheatreId,
+                Name = theatre.Name,
+                Location = theatre.Location,
+                IsActive = theatre.IsActive,
+                TimeSlots = theatre.TimeSlots
+                    .OrderBy(ts => ts.StartTime)
+                    .Select(ts => new TimeSlotDto
+                    {
+                        StartTime = ts.StartTime.ToString("HH:mm"),
+                        EndTime = ts.EndTime.ToString("HH:mm")
+                    })
+                    .ToList()
+            };
+        }
+
+        // ⭐ Screen Details with Seat Layout
+        public async Task<CreateScreenRequest> GetScreenByIdAsync(Guid screenId)
+        {
+            var screen = await _repo.GetScreenByIdAsync(screenId);
+            var seats = await _repo.GetScreenSeatsAsync(screenId);
+
+            // Group seats by row to reconstruct the seat layout
+            var seatRows = seats
+                .GroupBy(s => s.SeatRow)
+                .OrderBy(g => g.Key)
+                .Select(g => new CreateSeatRowRequest
+                {
+                    SeatRow = g.Key,
+                    SeatCount = g.Count(),
+                    SeatType = g.First().SeatType.ToString(),
+                    PriceMultiplier = g.First().PriceMultiplier
+                })
+                .ToList();
+
+            return new CreateScreenRequest
+            {
+                TheatreId = screen.TheatreId,
+                ScreenName = screen.ScreenName,
+                SeatLayoutType = screen.SeatLayoutType.ToString(),
+                SeatRows = seatRows
+            };
+        }
+
+        // ⭐ ShowTime Details
+        public async Task<ShowTimeResponseDto> GetShowTimeByIdAsync(Guid showTimeId)
+        {
+            var showTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+
+            return new ShowTimeResponseDto
+            {
+                ShowTimeId = showTime.ShowTimeId,
+                MovieTitle = showTime.Movie.Title,
+                TheatreName = showTime.Theatre.Name,
+                ScreenName = showTime.Screen.ScreenName,
+                LanguageName = showTime.Language.Name,
+                StartTime = showTime.StartTime,
+                EndTime = showTime.EndTime,
+                BasePrice = showTime.BasePrice,
+            };
+        }
+
+        // ⭐ Language Details (simple)
+        public async Task<LanguageDto> GetLanguageByIdAsync(Guid languageId)
+        {
+            var language = await _repo.GetLanguageByIdAsync(languageId);
+
+            return new LanguageDto
+            {
+                LanguageId = language.LanguageId,
+                Name = language.Name
+            };
+        }
+
+        // ⭐ Admin Details
+        public async Task<AdminDto> GetAdminByIdAsync(Guid adminId)
+        {
+            var admin = await _repo.GetUserByIdAsync(adminId);
+
+            if (admin.Role != UserRole.Admin)
+                throw new InvalidOperationException("User is not an admin");
+
+            return new AdminDto
+            {
+                UserId = admin.UserId,
+                Name = admin.Name,
+                Email = admin.Email,
+                IsActive = admin.IsActive
+            };
+        }
     }
 }
