@@ -185,44 +185,44 @@ namespace MovieBooking.Application.Services
             await AddScreenInternalAsync(dto);
         }
         private async Task AddScreenInternalAsync(CreateScreenDto dto)
-{
-    // 🔐 validations (enum-safe)
-    if (dto.SeatRows.Select(r => r.SeatRow).Distinct().Count()
-        != dto.SeatRows.Count)
-        throw new InvalidOperationException("Duplicate seat rows are not allowed");
-
-    var screen = new Screen
-    {
-        ScreenId = Guid.NewGuid(),
-        TheatreId = dto.TheatreId,
-        ScreenName = dto.ScreenName,
-        SeatLayoutType = dto.SeatLayoutType, // enum ✅
-        IsActive = true
-    };
-
-    await _repo.AddScreenAsync(screen);
-
-    var seats = new List<Seat>();
-
-    foreach (var row in dto.SeatRows)
-    {
-        for (int col = 1; col <= row.SeatCount; col++)
         {
-            seats.Add(new Seat
-            {
-                SeatId = Guid.NewGuid(),
-                ScreenId = screen.ScreenId,
-                SeatRow = row.SeatRow,
-                SeatColumn = col,
-                SeatType = row.SeatType,       // enum ✅
-                PriceMultiplier = row.PriceMultiplier,
-                IsActive = true
-            });
-        }
-    }
+            //  validations (enum-safe)
+            if (dto.SeatRows.Select(r => r.SeatRow).Distinct().Count()
+                != dto.SeatRows.Count)
+                throw new InvalidOperationException("Duplicate seat rows are not allowed");
 
-    await _repo.AddSeatsAsync(seats);
-}
+            var screen = new Screen
+            {
+                ScreenId = Guid.NewGuid(),
+                TheatreId = dto.TheatreId,
+                ScreenName = dto.ScreenName,
+                SeatLayoutType = dto.SeatLayoutType, // enum 
+                IsActive = true
+            };
+
+            await _repo.AddScreenAsync(screen);
+
+            var seats = new List<Seat>();
+
+            foreach (var row in dto.SeatRows)
+            {
+                for (int col = 1; col <= row.SeatCount; col++)
+                {
+                    seats.Add(new Seat
+                    {
+                        SeatId = Guid.NewGuid(),
+                        ScreenId = screen.ScreenId,
+                        SeatRow = row.SeatRow,
+                        SeatColumn = col,
+                        SeatType = row.SeatType,       // enum 
+                        PriceMultiplier = row.PriceMultiplier,
+                        IsActive = true
+                    });
+                }
+            }
+
+            await _repo.AddSeatsAsync(seats);
+        }
 
 
 
@@ -362,9 +362,7 @@ namespace MovieBooking.Application.Services
                 TheatreName = st.Theatre.Name,
                 ScreenName = st.Screen.ScreenName,
                 LanguageName = st.Language.Name,
-
                 StartTime = st.StartTime,
-                EndTime = st.EndTime,
                 BasePrice = st.BasePrice
             }).ToList();
         }
@@ -679,6 +677,7 @@ namespace MovieBooking.Application.Services
             {
                 MovieId = movie.MovieId,
                 Title = movie.Title,
+                Description = movie.Description,
                 DurationMinutes = movie.DurationMinutes,
                 ReleaseDate = movie.ReleaseDate,
                 IsActive = movie.IsActive
@@ -735,7 +734,6 @@ namespace MovieBooking.Application.Services
             };
         }
 
-        // ⭐ ShowTime Details
         public async Task<ShowTimeResponseDto> GetShowTimeByIdAsync(Guid showTimeId)
         {
             var showTime = await _repo.GetShowTimeByIdAsync(showTimeId);
@@ -748,12 +746,10 @@ namespace MovieBooking.Application.Services
                 ScreenName = showTime.Screen.ScreenName,
                 LanguageName = showTime.Language.Name,
                 StartTime = showTime.StartTime,
-                EndTime = showTime.EndTime,
                 BasePrice = showTime.BasePrice,
             };
         }
 
-        // ⭐ Language Details (simple)
         public async Task<LanguageDto> GetLanguageByIdAsync(Guid languageId)
         {
             var language = await _repo.GetLanguageByIdAsync(languageId);

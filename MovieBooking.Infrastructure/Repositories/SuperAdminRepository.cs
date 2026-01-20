@@ -206,13 +206,19 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<ShowTime> GetShowTimeByIdAsync(Guid showTimeId)
         {
-            var showTime = await _db.ShowTimes.FindAsync(showTimeId);
+            var showTime = await _db.ShowTimes
+                .Include(s => s.Movie)
+                .Include(s => s.Theatre)
+                .Include(s => s.Screen)
+                .Include(s => s.Language)
+                .FirstOrDefaultAsync(s => s.ShowTimeId == showTimeId);
 
             if (showTime == null)
                 throw new InvalidOperationException("ShowTime not found");
 
             return showTime;
         }
+
 
         public async Task<Language> GetLanguageByIdAsync(Guid languageId)
         {
