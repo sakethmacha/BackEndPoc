@@ -11,7 +11,7 @@ namespace MovieBooking.Domain.Entities
         public Guid CreatedBy { get; set; }   // Admin
 
         public ApprovalStatus ApprovalStatus { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; }
 
         public ICollection<Screen> Screens { get; set; } = new List<Screen>();

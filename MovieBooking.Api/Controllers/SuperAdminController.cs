@@ -38,11 +38,11 @@ namespace MovieBooking.Api.Controllers
 
         // ---------- MOVIE ----------
         [HttpPost("movies")]
-        public async Task<IActionResult> AddMovie(AddMovieDto dto)
+        public async Task<IActionResult> AddMovie(AddMovieDto addMovieDto)
         {
             var isAuth = User.Identity?.IsAuthenticated;
             var name = User.Identity?.Name;
-            await SuperAdminService.AddMovieAsync(dto);
+            await SuperAdminService.AddMovieAsync(addMovieDto);
             return Ok();
         }
 
@@ -117,6 +117,19 @@ namespace MovieBooking.Api.Controllers
             await SuperAdminService.ApproveRequestAsync(requestId);
             return Ok();
         }
+       
+        [HttpPut("requests/{requestId}/reject")]
+        public async Task<IActionResult> RejectRequest(Guid requestId)
+        {
+            await SuperAdminService.RejectRequestAsync(requestId);
+            return Ok();
+        }
+        [HttpPost("languages")]
+        public async Task<IActionResult> AddLanguage(CreateLanguageDto createLanguageDto)
+        {
+            await SuperAdminService.AddLanguageAsync(createLanguageDto);
+            return Ok("Language added");
+        }
         [HttpGet("screens/by-theatre/{theatreId}")]
         public async Task<IActionResult> GetScreensByTheatre(Guid theatreId)
         {
@@ -125,20 +138,6 @@ namespace MovieBooking.Api.Controllers
 
             var screens = await SuperAdminService.GetScreensByTheatreAsync(theatreId);
             return Ok(screens);
-        }
-
-        [HttpPut("requests/{requestId}/reject")]
-        public async Task<IActionResult> RejectRequest(Guid requestId)
-        {
-            await SuperAdminService.RejectRequestAsync(requestId);
-            return Ok();
-        }
-
-        [HttpPost("languages")]
-        public async Task<IActionResult> AddLanguage(CreateLanguageDto createLanguageDto)
-        {
-            await SuperAdminService.AddLanguageAsync(createLanguageDto);
-            return Ok("Language added");
         }
 
         [HttpGet("languages")]

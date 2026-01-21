@@ -9,7 +9,7 @@ namespace MovieBooking.Domain.Entities
         public string Email { get; set; } = null!;
         public string Password { get; set; } = null!;
         public UserRole Role { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; }
     }
 
