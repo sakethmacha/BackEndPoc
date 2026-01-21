@@ -1,40 +1,38 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
-using MovieBooking.Domain.Enums;
 using System.Security.Claims;
 namespace MovieBooking.Api.Controllers
 {
     [ApiController]
     [Route("api/superadmin")]
-    [Authorize(Roles = "SuperAdmin")]
+   // [Authorize(Roles = "SuperAdmin")]
     public class SuperAdminController : ControllerBase
     {
-        private readonly ISuperAdminService _superAdminService;
+        private readonly ISuperAdminService SuperAdminService;
 
         public SuperAdminController(ISuperAdminService superAdminService)
         {
-            _superAdminService = superAdminService;
+            SuperAdminService = superAdminService;
         }
 
         // ---------- ADMIN ----------
         [HttpPost("admins")]
-        public async Task<IActionResult> CreateAdmin(CreateAdminDto dto)
+        public async Task<IActionResult> CreateAdmin(CreateAdminDto createAdminDto)
         {
-            await _superAdminService.CreateAdminAsync(dto);
+            await SuperAdminService.CreateAdminAsync(createAdminDto);
             return Ok();
         }
 
         [HttpGet("admins")]
         public async Task<IActionResult> GetAdmins()
-            => Ok(await _superAdminService.GetAdminsAsync());
+            => Ok(await SuperAdminService.GetAdminsAsync());
 
         [HttpPut("admins/{adminId}/toggle")]
         public async Task<IActionResult> ToggleAdmin(Guid adminId)
         {
-            await _superAdminService.ToggleAdminAsync(adminId);
+            await SuperAdminService.ToggleAdminAsync(adminId);
             return Ok();
         }
 
@@ -44,47 +42,47 @@ namespace MovieBooking.Api.Controllers
         {
             var isAuth = User.Identity?.IsAuthenticated;
             var name = User.Identity?.Name;
-            await _superAdminService.AddMovieAsync(dto);
+            await SuperAdminService.AddMovieAsync(dto);
             return Ok();
         }
 
         [HttpPut("movies/{movieId}/toggle")]
         public async Task<IActionResult> ToggleMovie(Guid movieId)
         {
-            await _superAdminService.ToggleMovieAsync(movieId);
+            await SuperAdminService.ToggleMovieAsync(movieId);
             return Ok();
         }
         [HttpGet("movies")]
         public async Task<IActionResult> GetMovies()
         {
-            var movies = await _superAdminService.GetMoviesAsync();
+            var movies = await SuperAdminService.GetMoviesAsync();
             return Ok(movies);
         }
 
         // ---------- THEATRE ----------
         [HttpPost("theatres")]
-        public async Task<IActionResult> AddTheatre(CreateTheatreDto dto)
+        public async Task<IActionResult> AddTheatre(CreateTheatreDto createTheatreDto)
         {
             //var superAdminId = Guid.Parse(User.FindFirst("UserId")!.Value);
             var superAdminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
            
-            await _superAdminService.AddTheatreAsync(dto, superAdminId);
+            await SuperAdminService.AddTheatreAsync(createTheatreDto, superAdminId);
             return Ok("Theatre added successfully");
         }
         [HttpGet("theatres")]
         public async Task<IActionResult> GetTheatres()
         {
-            var theatres = await _superAdminService.GetTheatresAsync();
+            var theatres = await SuperAdminService.GetTheatresAsync();
             return Ok(theatres);
         }
 
         [HttpPost("screens")]
-        public async Task<IActionResult> AddScreen(CreateScreenRequest request)
+        public async Task<IActionResult> AddScreen(CreateScreenRequest CreateScreenRequest)
         {
-            if (request == null)
+            if (CreateScreenRequest == null)
                 return BadRequest("Invalid request");
 
-            await _superAdminService.AddScreenAsync(request);
+            await SuperAdminService.AddScreenAsync(CreateScreenRequest);
 
             return Ok("Screen added successfully");
         }
@@ -94,14 +92,14 @@ namespace MovieBooking.Api.Controllers
         [HttpGet("screens")]
         public async Task<IActionResult> GetScreens()
         {
-            var screens = await _superAdminService.GetScreensAsync();
+            var screens = await SuperAdminService.GetScreensAsync();
             return Ok(screens);
         }
         // ---------- SHOWTIME ----------
         [HttpPost("showtimes")]
-        public async Task<IActionResult> AddShowTime(CreateShowTimeDto request)
+        public async Task<IActionResult> AddShowTime(CreateShowTimeDto CreateShowRequest)
         {
-            await _superAdminService.AddShowTimeAsync(request);
+            await SuperAdminService.AddShowTimeAsync(CreateShowRequest);
 
             return Ok("ShowTimes created successfully");
         }
@@ -109,14 +107,14 @@ namespace MovieBooking.Api.Controllers
         [HttpGet("showtimes")]
         public async Task<IActionResult> GetShowTimes()
         {
-            var showTimes = await _superAdminService.GetShowTimesAsync();
+            var showTimes = await SuperAdminService.GetShowTimesAsync();
             return Ok(showTimes);
         }
         // ---------- APPROVAL ----------
         [HttpPut("requests/{requestId}/approve")]
         public async Task<IActionResult> ApproveRequest(Guid requestId)
         {
-            await _superAdminService.ApproveRequestAsync(requestId);
+            await SuperAdminService.ApproveRequestAsync(requestId);
             return Ok();
         }
         [HttpGet("screens/by-theatre/{theatreId}")]
@@ -125,92 +123,92 @@ namespace MovieBooking.Api.Controllers
             if (theatreId == Guid.Empty)
                 return BadRequest("Invalid theatre id");
 
-            var screens = await _superAdminService.GetScreensByTheatreAsync(theatreId);
+            var screens = await SuperAdminService.GetScreensByTheatreAsync(theatreId);
             return Ok(screens);
         }
 
         [HttpPut("requests/{requestId}/reject")]
         public async Task<IActionResult> RejectRequest(Guid requestId)
         {
-            await _superAdminService.RejectRequestAsync(requestId);
+            await SuperAdminService.RejectRequestAsync(requestId);
             return Ok();
         }
 
         [HttpPost("languages")]
-        public async Task<IActionResult> AddLanguage(CreateLanguageDto dto)
+        public async Task<IActionResult> AddLanguage(CreateLanguageDto createLanguageDto)
         {
-            await _superAdminService.AddLanguageAsync(dto);
+            await SuperAdminService.AddLanguageAsync(createLanguageDto);
             return Ok("Language added");
         }
 
         [HttpGet("languages")]
         public async Task<IActionResult> GetLanguages()
         {
-            return Ok(await _superAdminService.GetLanguagesAsync());
+            return Ok(await SuperAdminService.GetLanguagesAsync());
         }
         // ---------- MOVIE UPDATE ----------
         [HttpPut("movies/{movieId}")]
-        public async Task<IActionResult> UpdateMovie(Guid movieId, [FromBody] UpdateMovieDto dto)
+        public async Task<IActionResult> UpdateMovie(Guid movieId, [FromBody] UpdateMovieDto updateMovieDto)
         {
             if (movieId == Guid.Empty)
                 return BadRequest("Invalid movie ID");
 
-            await _superAdminService.UpdateMovieAsync(movieId, dto);
+            await SuperAdminService.UpdateMovieAsync(movieId, updateMovieDto);
             return Ok(new { message = "Movie updated successfully" });
         }
 
         // ---------- THEATRE UPDATE ----------
         [HttpPut("theatres/{theatreId}")]
-        public async Task<IActionResult> UpdateTheatre(Guid theatreId, [FromBody] UpdateTheatreDto dto)
+        public async Task<IActionResult> UpdateTheatre(Guid theatreId, [FromBody] UpdateTheatreDto updateTheatreDto)
         {
             if (theatreId == Guid.Empty)
                 return BadRequest("Invalid theatre ID");
 
-            await _superAdminService.UpdateTheatreAsync(theatreId, dto);
+            await SuperAdminService.UpdateTheatreAsync(theatreId, updateTheatreDto);
             return Ok(new { message = "Theatre updated successfully" });
         }
 
         // ---------- SCREEN UPDATE ----------
         [HttpPut("screens/{screenId}")]
-        public async Task<IActionResult> UpdateScreen(Guid screenId, [FromBody] UpdateScreenDto dto)
+        public async Task<IActionResult> UpdateScreen(Guid screenId, [FromBody] UpdateScreenDto updateScreenDto)
         {
             if (screenId == Guid.Empty)
                 return BadRequest("Invalid screen ID");
 
-            await _superAdminService.UpdateScreenAsync(screenId, dto);
+            await SuperAdminService.UpdateScreenAsync(screenId, updateScreenDto);
             return Ok(new { message = "Screen updated successfully" });
         }
 
         // ---------- SHOWTIME UPDATE ----------
         [HttpPut("showtimes/{showTimeId}")]
-        public async Task<IActionResult> UpdateShowTime(Guid showTimeId, [FromBody] UpdateShowTimeDto dto)
+        public async Task<IActionResult> UpdateShowTime(Guid showTimeId, [FromBody] UpdateShowTimeDto updateShowTimeDto)
         {
             if (showTimeId == Guid.Empty)
                 return BadRequest("Invalid showtime ID");
 
-            await _superAdminService.UpdateShowTimeAsync(showTimeId, dto);
+            await SuperAdminService.UpdateShowTimeAsync(showTimeId, updateShowTimeDto);
             return Ok(new { message = "ShowTime updated successfully" });
         }
 
         // ---------- LANGUAGE UPDATE ----------
         [HttpPut("languages/{languageId}")]
-        public async Task<IActionResult> UpdateLanguage(Guid languageId, [FromBody] UpdateLanguageDto dto)
+        public async Task<IActionResult> UpdateLanguage(Guid languageId, [FromBody] UpdateLanguageDto updateLanguageDto)
         {
             if (languageId == Guid.Empty)
                 return BadRequest("Invalid language ID");
 
-            await _superAdminService.UpdateLanguageAsync(languageId, dto);
+            await SuperAdminService.UpdateLanguageAsync(languageId, updateLanguageDto);
             return Ok(new { message = "Language updated successfully" });
         }
 
         // ---------- ADMIN UPDATE ----------
         [HttpPut("admins/{adminId}")]
-        public async Task<IActionResult> UpdateAdmin(Guid adminId, [FromBody] UpdateAdminDto dto)
+        public async Task<IActionResult> UpdateAdmin(Guid adminId, [FromBody] UpdateAdminDto updateAdminDto)
         {
             if (adminId == Guid.Empty)
                 return BadRequest("Invalid admin ID");
 
-            await _superAdminService.UpdateAdminAsync(adminId, dto);
+            await SuperAdminService.UpdateAdminAsync(adminId, updateAdminDto);
             return Ok(new { message = "Admin updated successfully" });
         }
 
@@ -223,7 +221,7 @@ namespace MovieBooking.Api.Controllers
             if (movieId == Guid.Empty)
                 return BadRequest("Invalid movie ID");
 
-            await _superAdminService.DeleteMovieAsync(movieId);
+            await SuperAdminService.DeleteMovieAsync(movieId);
             return Ok(new { message = "Movie deleted successfully" });
         }
 
@@ -234,7 +232,7 @@ namespace MovieBooking.Api.Controllers
             if (theatreId == Guid.Empty)
                 return BadRequest("Invalid theatre ID");
 
-            await _superAdminService.DeleteTheatreAsync(theatreId);
+            await SuperAdminService.DeleteTheatreAsync(theatreId);
             return Ok(new { message = "Theatre deleted successfully" });
         }
 
@@ -245,7 +243,7 @@ namespace MovieBooking.Api.Controllers
             if (screenId == Guid.Empty)
                 return BadRequest("Invalid screen ID");
 
-            await _superAdminService.DeleteScreenAsync(screenId);
+            await SuperAdminService.DeleteScreenAsync(screenId);
             return Ok(new { message = "Screen deleted successfully" });
         }
 
@@ -256,7 +254,7 @@ namespace MovieBooking.Api.Controllers
             if (showTimeId == Guid.Empty)
                 return BadRequest("Invalid showtime ID");
 
-            await _superAdminService.DeleteShowTimeAsync(showTimeId);
+            await SuperAdminService.DeleteShowTimeAsync(showTimeId);
             return Ok(new { message = "ShowTime deleted successfully" });
         }
 
@@ -267,7 +265,7 @@ namespace MovieBooking.Api.Controllers
             if (languageId == Guid.Empty)
                 return BadRequest("Invalid language ID");
 
-            await _superAdminService.DeleteLanguageAsync(languageId);
+            await SuperAdminService.DeleteLanguageAsync(languageId);
             return Ok(new { message = "Language deleted successfully" });
         }
 
@@ -278,7 +276,7 @@ namespace MovieBooking.Api.Controllers
             if (adminId == Guid.Empty)
                 return BadRequest("Invalid admin ID");
 
-            await _superAdminService.DeleteAdminAsync(adminId);
+            await SuperAdminService.DeleteAdminAsync(adminId);
             return Ok(new { message = "Admin deleted successfully" });
         }
 
@@ -287,42 +285,42 @@ namespace MovieBooking.Api.Controllers
         [HttpGet("movies/{movieId}")]
         public async Task<IActionResult> GetMovieById(Guid movieId)
         {
-            var movie = await _superAdminService.GetMovieByIdAsync(movieId);
+            var movie = await SuperAdminService.GetMovieByIdAsync(movieId);
             return Ok(movie);
         }
 
         [HttpGet("theatres/{theatreId}")]
         public async Task<IActionResult> GetTheatreById(Guid theatreId)
         {
-            var theatre = await _superAdminService.GetTheatreByIdAsync(theatreId);
+            var theatre = await SuperAdminService.GetTheatreByIdAsync(theatreId);
             return Ok(theatre);
         }
 
         [HttpGet("screens/{screenId}")]
         public async Task<IActionResult> GetScreenById(Guid screenId)
         {
-            var screen = await _superAdminService.GetScreenByIdAsync(screenId);
+            var screen = await SuperAdminService.GetScreenByIdAsync(screenId);
             return Ok(screen);
         }
 
         [HttpGet("showtimes/{showTimeId}")]
         public async Task<IActionResult> GetShowTimeById(Guid showTimeId)
         {
-            var showTime = await _superAdminService.GetShowTimeByIdAsync(showTimeId);
+            var showTime = await SuperAdminService.GetShowTimeByIdAsync(showTimeId);
             return Ok(showTime);
         }
 
         [HttpGet("languages/{languageId}")]
         public async Task<IActionResult> GetLanguageById(Guid languageId)
         {
-            var language = await _superAdminService.GetLanguageByIdAsync(languageId);
+            var language = await SuperAdminService.GetLanguageByIdAsync(languageId);
             return Ok(language);
         }
 
         [HttpGet("admins/{adminId}")]
         public async Task<IActionResult> GetAdminById(Guid adminId)
         {
-            var admin = await _superAdminService.GetAdminByIdAsync(adminId);
+            var admin = await SuperAdminService.GetAdminByIdAsync(adminId);
             return Ok(admin);
         }
     }

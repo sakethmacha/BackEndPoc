@@ -8,59 +8,59 @@ namespace MovieBooking.Application.Services
 {
     public class SuperAdminService : ISuperAdminService
     {
-        private readonly ISuperAdminRepository _repo;
+        private readonly ISuperAdminRepository SuperAdminRepository;
 
-        public SuperAdminService(ISuperAdminRepository repo)
+        public SuperAdminService(ISuperAdminRepository superAdminRepository)
         {
-            _repo = repo;
+            SuperAdminRepository = superAdminRepository;
         }
 
-        public async Task CreateAdminAsync(CreateAdminDto dto)
+        public async Task CreateAdminAsync(CreateAdminDto createAdminDto)
         {
             var user = new User
             {
                 UserId = Guid.NewGuid(),
-                Name = dto.Name,
-                Email = dto.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Name = createAdminDto.Name,
+                Email = createAdminDto.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(createAdminDto.Password),
                 Role = UserRole.Admin,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repo.CreateAdminAsync(user);
+            await SuperAdminRepository.CreateAdminAsync(user);
         }
 
         public Task<List<AdminDto>> GetAdminsAsync()
-            => _repo.GetAdminsAsync();
+            => SuperAdminRepository.GetAdminsAsync();
 
         public async Task ToggleAdminAsync(Guid adminId)
         {
-            var admin = await _repo.GetUserByIdAsync(adminId);
+            var admin = await SuperAdminRepository.GetUserByIdAsync(adminId);
             admin.IsActive = !admin.IsActive;
-            await _repo.UpdateUserAsync(admin);
+            await SuperAdminRepository.UpdateUserAsync(admin);
         }
 
-        public async Task AddMovieAsync(AddMovieDto dto)
+        public async Task AddMovieAsync(AddMovieDto addMovieDto)
         {
             var movie = new Movie
             {
                 MovieId = Guid.NewGuid(),
-                Title = dto.Title,
-                Description = dto.Description,
-                DurationMinutes = dto.DurationMinutes,
-                ReleaseDate = dto.ReleaseDate,
-                PosterUrl = dto.PosterUrl,
+                Title = addMovieDto.Title,
+                Description = addMovieDto.Description,
+                DurationMinutes = addMovieDto.DurationMinutes,
+                ReleaseDate = addMovieDto.ReleaseDate,
+                PosterUrl = addMovieDto.PosterUrl,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _repo.AddMovieAsync(movie);
+            await SuperAdminRepository.AddMovieAsync(movie);
         }
 
         public async Task<List<MovieResponse>> GetMoviesAsync()
         {
-            var movies = await _repo.GetAllAsync();
+            var movies = await SuperAdminRepository.GetAllAsync();
 
             return movies.Select(m => new MovieResponse
             {
@@ -74,9 +74,9 @@ namespace MovieBooking.Application.Services
 
         public async Task ToggleMovieAsync(Guid movieId)
         {
-            var movie = await _repo.GetMovieByIdAsync(movieId);
+            var movie = await SuperAdminRepository.GetMovieByIdAsync(movieId);
             movie.IsActive = !movie.IsActive;
-            await _repo.UpdateMovieAsync(movie);
+            await SuperAdminRepository.UpdateMovieAsync(movie);
         }
         public async Task AddTheatreAsync(CreateTheatreDto dto, Guid superAdminId)
         {
@@ -139,7 +139,7 @@ namespace MovieBooking.Application.Services
             }).ToList();
 
             // 5️⃣ Persist
-            await _repo.AddTheatreWithTimeSlotsAsync(theatre, timeSlots);
+            await SuperAdminRepository.AddTheatreWithTimeSlotsAsync(theatre, timeSlots);
         }
 
 
@@ -200,7 +200,7 @@ namespace MovieBooking.Application.Services
                 IsActive = true
             };
 
-            await _repo.AddScreenAsync(screen);
+            await SuperAdminRepository.AddScreenAsync(screen);
 
             var seats = new List<Seat>();
 
@@ -221,7 +221,7 @@ namespace MovieBooking.Application.Services
                 }
             }
 
-            await _repo.AddSeatsAsync(seats);
+            await SuperAdminRepository.AddSeatsAsync(seats);
         }
 
 
@@ -229,7 +229,7 @@ namespace MovieBooking.Application.Services
         public async Task AddShowTimeAsync(CreateShowTimeDto dto)
         {
             // 1️⃣ Get theatre timings
-            var slots = await _repo.GetTimeSlotsByTheatreAsync(dto.TheatreId);
+            var slots = await SuperAdminRepository.GetTimeSlotsByTheatreAsync(dto.TheatreId);
 
             if (!slots.Any())
                 throw new InvalidOperationException(
@@ -243,7 +243,7 @@ namespace MovieBooking.Application.Services
                 var end = dto.ShowDate.ToDateTime(slot.EndTime);
 
                // 2️ Business rule: no conflict per screen
-                bool conflict = await _repo.ShowTimeConflictExistsAsync(
+                bool conflict = await SuperAdminRepository.ShowTimeConflictExistsAsync(
                     dto.ScreenId, start, end);
 
                 if (conflict)
@@ -265,43 +265,43 @@ namespace MovieBooking.Application.Services
             }
 
             // 3️⃣ Persist
-            await _repo.AddShowTimesAsync(showTimes);
+            await SuperAdminRepository.AddShowTimesAsync(showTimes);
         }
 
 
         public async Task ApproveRequestAsync(Guid requestId)
         {
-            var request = await _repo.GetRequestByIdAsync(requestId);
+            var request = await SuperAdminRepository.GetRequestByIdAsync(requestId);
             request.Status = ApprovalStatus.APPROVED;
             request.ReviewedAt = DateTime.UtcNow;
 
             switch (request.RequestType)
             {
                 case RequestType.THEATRE:
-                    await _repo.ApproveTheatreAsync(request.ReferenceId);
+                    await SuperAdminRepository.ApproveTheatreAsync(request.ReferenceId);
                     break;
                 case RequestType.SCREEN:
-                    await _repo.ApproveScreenAsync(request.ReferenceId);
+                    await SuperAdminRepository.ApproveScreenAsync(request.ReferenceId);
                     break;
                 case RequestType.SHOWTIME:
-                    await _repo.ApproveShowTimeAsync(request.ReferenceId);
+                    await SuperAdminRepository.ApproveShowTimeAsync(request.ReferenceId);
                     break;
             }
 
-            await _repo.UpdateRequestAsync(request);
+            await SuperAdminRepository.UpdateRequestAsync(request);
         }
 
         public async Task RejectRequestAsync(Guid requestId)
         {
-            var request = await _repo.GetRequestByIdAsync(requestId);
+            var request = await SuperAdminRepository.GetRequestByIdAsync(requestId);
             request.Status = ApprovalStatus.REJECTED;
             request.ReviewedAt = DateTime.UtcNow;
-            await _repo.UpdateRequestAsync(request);
+            await SuperAdminRepository.UpdateRequestAsync(request);
         }
 
         public async Task AddLanguageAsync(CreateLanguageDto dto)
         {
-            var exists = await _repo.LanguageExistsAsync(dto.Name);
+            var exists = await SuperAdminRepository.LanguageExistsAsync(dto.Name);
             if (exists)
                 throw new InvalidOperationException("Language already exists");
 
@@ -311,12 +311,12 @@ namespace MovieBooking.Application.Services
                 Name = dto.Name.Trim()
             };
 
-            await _repo.AddLanguageAsync(language);
+            await SuperAdminRepository.AddLanguageAsync(language);
         }
 
         public async Task<List<LanguageDto>> GetLanguagesAsync()
         {
-            var languages = await _repo.GetLanguagesAsync();
+            var languages = await SuperAdminRepository.GetLanguagesAsync();
             return languages.Select(l => new LanguageDto
             {
                 LanguageId = l.LanguageId,
@@ -325,7 +325,7 @@ namespace MovieBooking.Application.Services
         }
         public async Task<List<TheatreResponseDto>> GetTheatresAsync()
         {
-            var theatres = await _repo.GetTheatresAsync();
+            var theatres = await SuperAdminRepository.GetTheatresAsync();
 
             return theatres.Select(t => new TheatreResponseDto
             {
@@ -338,7 +338,7 @@ namespace MovieBooking.Application.Services
         // ---------- SCREENS ----------
         public async Task<List<ScreenResponseDto>> GetScreensAsync()
         {
-            var screens = await _repo.GetScreensAsync();
+            var screens = await SuperAdminRepository.GetScreensAsync();
 
             return screens.Select(s => new ScreenResponseDto
             {
@@ -352,7 +352,7 @@ namespace MovieBooking.Application.Services
         // ---------- SHOWTIMES ----------
         public async Task<List<ShowTimeResponseDto>> GetShowTimesAsync()
         {
-            var showTimes = await _repo.GetShowTimesAsync();
+            var showTimes = await SuperAdminRepository.GetShowTimesAsync();
 
             return showTimes.Select(st => new ShowTimeResponseDto
             {
@@ -369,7 +369,7 @@ namespace MovieBooking.Application.Services
 
         public async Task<List<ScreenResponseDto>> GetScreensByTheatreAsync(Guid theatreId)
         {
-            var screens = await _repo.GetByTheatreIdAsync(theatreId);
+            var screens = await SuperAdminRepository.GetByTheatreIdAsync(theatreId);
 
             return screens.Select(s => new ScreenResponseDto
             {
@@ -383,7 +383,7 @@ namespace MovieBooking.Application.Services
 
         public async Task UpdateMovieAsync(Guid movieId, UpdateMovieDto dto)
         {
-            var movie = await _repo.GetMovieByIdAsync(movieId);
+            var movie = await SuperAdminRepository.GetMovieByIdAsync(movieId);
 
             movie.Title = dto.Title;
             movie.Description = dto.Description;
@@ -391,7 +391,7 @@ namespace MovieBooking.Application.Services
             movie.ReleaseDate = dto.ReleaseDate;
             movie.PosterUrl = dto.PosterUrl;
 
-            await _repo.UpdateMovieAsync(movie);
+            await SuperAdminRepository.UpdateMovieAsync(movie);
         }
 
         public async Task UpdateTheatreAsync(Guid theatreId, UpdateTheatreDto dto)
@@ -399,7 +399,7 @@ namespace MovieBooking.Application.Services
             if (dto.TimeSlots == null || !dto.TimeSlots.Any())
                 throw new InvalidOperationException("At least one show timing must be configured");
 
-            var theatre = await _repo.GetTheatreByIdAsync(theatreId);
+            var theatre = await SuperAdminRepository.GetTheatreByIdAsync(theatreId);
 
             // Validate and parse time slots
             var parsedSlots = dto.TimeSlots.Select(ts =>
@@ -430,7 +430,7 @@ namespace MovieBooking.Application.Services
             theatre.Location = dto.Location;
 
             // Delete existing time slots
-            await _repo.DeleteTheatreTimeSlotsAsync(theatreId);
+            await SuperAdminRepository.DeleteTheatreTimeSlotsAsync(theatreId);
 
             // Create new time slots
             var newTimeSlots = parsedSlots.Select(p => new Domain.Entities.TheatreTimeSlot
@@ -442,15 +442,15 @@ namespace MovieBooking.Application.Services
                 IsActive = true
             }).ToList();
 
-            await _repo.AddTheatreWithTimeSlotsAsync(theatre, newTimeSlots);
+            await SuperAdminRepository.AddTheatreWithTimeSlotsAsync(theatre, newTimeSlots);
         }
 
         public async Task UpdateScreenAsync(Guid screenId, UpdateScreenDto dto)
         {
-            var screen = await _repo.GetScreenByIdAsync(screenId);
+            var screen = await SuperAdminRepository.GetScreenByIdAsync(screenId);
 
             // Check if screen has active showtimes
-            var hasActiveShowTimes = await _repo.ScreenHasActiveShowTimesAsync(screenId);
+            var hasActiveShowTimes = await SuperAdminRepository.ScreenHasActiveShowTimesAsync(screenId);
             if (hasActiveShowTimes)
                 throw new InvalidOperationException("Cannot update screen with active showtimes. Please deactivate or delete showtimes first.");
 
@@ -485,10 +485,10 @@ namespace MovieBooking.Application.Services
             screen.ScreenName = dto.ScreenName;
             screen.SeatLayoutType = layoutType;
 
-            await _repo.UpdateScreenAsync(screen);
+            await SuperAdminRepository.UpdateScreenAsync(screen);
 
             // Delete existing seats
-            await _repo.DeleteScreenSeatsAsync(screenId);
+            await SuperAdminRepository.DeleteScreenSeatsAsync(screenId);
 
             // Create new seats
             var seats = new List<Domain.Entities.Seat>();
@@ -510,15 +510,15 @@ namespace MovieBooking.Application.Services
                 }
             }
 
-            await _repo.AddSeatsAsync(seats);
+            await SuperAdminRepository.AddSeatsAsync(seats);
         }
 
         public async Task UpdateShowTimeAsync(Guid showTimeId, UpdateShowTimeDto dto)
         {
-            var showTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+            var showTime = await SuperAdminRepository.GetShowTimeByIdAsync(showTimeId);
 
             // Get theatre time slots
-            var slots = await _repo.GetTimeSlotsByTheatreAsync(showTime.TheatreId);
+            var slots = await SuperAdminRepository.GetTimeSlotsByTheatreAsync(showTime.TheatreId);
 
             if (!slots.Any())
                 throw new InvalidOperationException("Theatre has no configured time slots");
@@ -530,12 +530,12 @@ namespace MovieBooking.Application.Services
             var end = dto.ShowDate.ToDateTime(slot.EndTime);
 
             // Check for conflicts (excluding current showtime)
-            var conflict = await _repo.ShowTimeConflictExistsAsync(showTime.ScreenId, start, end);
+            var conflict = await SuperAdminRepository.ShowTimeConflictExistsAsync(showTime.ScreenId, start, end);
 
             if (conflict)
             {
                 // Additional check: ensure it's not conflicting with itself
-                var conflictingShowTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+                var conflictingShowTime = await SuperAdminRepository.GetShowTimeByIdAsync(showTimeId);
                 if (conflictingShowTime.ShowTimeId != showTimeId)
                     throw new InvalidOperationException("This screen is already scheduled for the selected date");
             }
@@ -547,26 +547,26 @@ namespace MovieBooking.Application.Services
             showTime.EndTime = end;
             showTime.BasePrice = dto.BasePrice;
 
-            await _repo.UpdateShowTimeAsync(showTime);
+            await SuperAdminRepository.UpdateShowTimeAsync(showTime);
         }
 
         public async Task UpdateLanguageAsync(Guid languageId, UpdateLanguageDto dto)
         {
-            var language = await _repo.GetLanguageByIdAsync(languageId);
+            var language = await SuperAdminRepository.GetLanguageByIdAsync(languageId);
 
             // Check if name already exists (excluding current language)
-            var exists = await _repo.LanguageExistsAsync(dto.Name);
+            var exists = await SuperAdminRepository.LanguageExistsAsync(dto.Name);
             if (exists && !language.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Language name already exists");
 
             language.Name = dto.Name.Trim();
 
-            await _repo.UpdateLanguageAsync(language);
+            await SuperAdminRepository.UpdateLanguageAsync(language);
         }
 
         public async Task UpdateAdminAsync(Guid adminId, UpdateAdminDto dto)
         {
-            var admin = await _repo.GetUserByIdAsync(adminId);
+            var admin = await SuperAdminRepository.GetUserByIdAsync(adminId);
 
             if (admin.Role != UserRole.Admin)
                 throw new InvalidOperationException("User is not an admin");
@@ -580,98 +580,98 @@ namespace MovieBooking.Application.Services
                 admin.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             }
 
-            await _repo.UpdateUserAsync(admin);
+            await SuperAdminRepository.UpdateUserAsync(admin);
         }
 
         // ========== DELETE METHODS ==========
 
         public async Task DeleteMovieAsync(Guid movieId)
         {
-            var movie = await _repo.GetMovieByIdAsync(movieId);
+            var movie = await SuperAdminRepository.GetMovieByIdAsync(movieId);
 
             // Check if movie has active showtimes
-            var hasActiveShowTimes = await _repo.MovieHasActiveShowTimesAsync(movieId);
+            var hasActiveShowTimes = await SuperAdminRepository.MovieHasActiveShowTimesAsync(movieId);
 
             if (hasActiveShowTimes)
                 throw new InvalidOperationException("Cannot delete movie with active showtimes. Please deactivate or delete showtimes first.");
 
-            await _repo.DeleteMovieAsync(movie);
+            await SuperAdminRepository.DeleteMovieAsync(movie);
         }
 
         public async Task DeleteTheatreAsync(Guid theatreId)
         {
-            var theatre = await _repo.GetTheatreByIdAsync(theatreId);
+            var theatre = await SuperAdminRepository.GetTheatreByIdAsync(theatreId);
 
             // Check if theatre has active screens
-            var hasActiveScreens = await _repo.TheatreHasActiveScreensAsync(theatreId);
+            var hasActiveScreens = await SuperAdminRepository.TheatreHasActiveScreensAsync(theatreId);
 
             if (hasActiveScreens)
                 throw new InvalidOperationException("Cannot delete theatre with active screens. Please deactivate or delete screens first.");
 
             // Delete time slots first (cascade)
-            await _repo.DeleteTheatreTimeSlotsAsync(theatreId);
+            await SuperAdminRepository.DeleteTheatreTimeSlotsAsync(theatreId);
 
-            await _repo.DeleteTheatreAsync(theatre);
+            await SuperAdminRepository.DeleteTheatreAsync(theatre);
         }
 
         public async Task DeleteScreenAsync(Guid screenId)
         {
-            var screen = await _repo.GetScreenByIdAsync(screenId);
+            var screen = await SuperAdminRepository.GetScreenByIdAsync(screenId);
 
             // Check if screen has active showtimes
-            var hasActiveShowTimes = await _repo.ScreenHasActiveShowTimesAsync(screenId);
+            var hasActiveShowTimes = await SuperAdminRepository.ScreenHasActiveShowTimesAsync(screenId);
 
             if (hasActiveShowTimes)
                 throw new InvalidOperationException("Cannot delete screen with active showtimes. Please deactivate or delete showtimes first.");
 
             // Delete seats first (cascade)
-            await _repo.DeleteScreenSeatsAsync(screenId);
+            await SuperAdminRepository.DeleteScreenSeatsAsync(screenId);
 
-            await _repo.DeleteScreenAsync(screen);
+            await SuperAdminRepository.DeleteScreenAsync(screen);
         }
 
         public async Task DeleteShowTimeAsync(Guid showTimeId)
         {
-            var showTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+            var showTime = await SuperAdminRepository.GetShowTimeByIdAsync(showTimeId);
 
             // You can add additional checks here (e.g., bookings exist)
             // For now, simple delete
-            await _repo.DeleteShowTimeAsync(showTime);
+            await SuperAdminRepository.DeleteShowTimeAsync(showTime);
         }
 
         public async Task DeleteLanguageAsync(Guid languageId)
         {
-            var language = await _repo.GetLanguageByIdAsync(languageId);
+            var language = await SuperAdminRepository.GetLanguageByIdAsync(languageId);
 
             // Check if language has active showtimes
-            var hasActiveShowTimes = await _repo.LanguageHasActiveShowTimesAsync(languageId);
+            var hasActiveShowTimes = await SuperAdminRepository.LanguageHasActiveShowTimesAsync(languageId);
 
             if (hasActiveShowTimes)
                 throw new InvalidOperationException("Cannot delete language with active showtimes. Please deactivate or delete showtimes first.");
 
-            await _repo.DeleteLanguageAsync(language);
+            await SuperAdminRepository.DeleteLanguageAsync(language);
         }
 
         public async Task DeleteAdminAsync(Guid adminId)
         {
-            var admin = await _repo.GetUserByIdAsync(adminId);
+            var admin = await SuperAdminRepository.GetUserByIdAsync(adminId);
 
             if (admin.Role != UserRole.Admin)
                 throw new InvalidOperationException("User is not an admin");
 
             // Check if admin has active theatres
-            var hasActiveTheatres = await _repo.AdminHasActiveTheatresAsync(adminId);
+            var hasActiveTheatres = await SuperAdminRepository.AdminHasActiveTheatresAsync(adminId);
 
             if (hasActiveTheatres)
                 throw new InvalidOperationException("Cannot delete admin with active theatres. Please reassign or delete theatres first.");
 
-            await _repo.DeleteAdminAsync(admin);
+            await SuperAdminRepository.DeleteAdminAsync(admin);
         }
 
 
         public async Task<MovieResponse> GetMovieByIdAsync(Guid movieId)
         {
-            var movie = await _repo.GetMovieByIdAsync(movieId);
+            var movie = await SuperAdminRepository.GetMovieByIdAsync(movieId);
 
             return new MovieResponse
             {
@@ -687,7 +687,7 @@ namespace MovieBooking.Application.Services
         // ⭐ Theatre Details with TimeSlots
         public async Task<TheatreResponseDto> GetTheatreByIdAsync(Guid theatreId)
         {
-            var theatre = await _repo.GetTheatreByIdAsync(theatreId);
+            var theatre = await SuperAdminRepository.GetTheatreByIdAsync(theatreId);
 
             return new TheatreResponseDto
             {
@@ -709,8 +709,8 @@ namespace MovieBooking.Application.Services
         // ⭐ Screen Details with Seat Layout
         public async Task<CreateScreenRequest> GetScreenByIdAsync(Guid screenId)
         {
-            var screen = await _repo.GetScreenByIdAsync(screenId);
-            var seats = await _repo.GetScreenSeatsAsync(screenId);
+            var screen = await SuperAdminRepository.GetScreenByIdAsync(screenId);
+            var seats = await SuperAdminRepository.GetScreenSeatsAsync(screenId);
 
             // Group seats by row to reconstruct the seat layout
             var seatRows = seats
@@ -736,7 +736,7 @@ namespace MovieBooking.Application.Services
 
         public async Task<ShowTimeResponseDto> GetShowTimeByIdAsync(Guid showTimeId)
         {
-            var showTime = await _repo.GetShowTimeByIdAsync(showTimeId);
+            var showTime = await SuperAdminRepository.GetShowTimeByIdAsync(showTimeId);
 
             return new ShowTimeResponseDto
             {
@@ -752,7 +752,7 @@ namespace MovieBooking.Application.Services
 
         public async Task<LanguageDto> GetLanguageByIdAsync(Guid languageId)
         {
-            var language = await _repo.GetLanguageByIdAsync(languageId);
+            var language = await SuperAdminRepository.GetLanguageByIdAsync(languageId);
 
             return new LanguageDto
             {
@@ -764,7 +764,7 @@ namespace MovieBooking.Application.Services
         // ⭐ Admin Details
         public async Task<AdminDto> GetAdminByIdAsync(Guid adminId)
         {
-            var admin = await _repo.GetUserByIdAsync(adminId);
+            var admin = await SuperAdminRepository.GetUserByIdAsync(adminId);
 
             if (admin.Role != UserRole.Admin)
                 throw new InvalidOperationException("User is not an admin");
