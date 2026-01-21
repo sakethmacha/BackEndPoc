@@ -52,7 +52,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<List<Movie>> GetAllAsync()
         {
             return await DbContext.Movies
-                .Where(m => m.IsActive)          //  only active movies
+                .Where(m => m.IsActive)          
                 .AsNoTracking()
                 .OrderByDescending(m => m.ReleaseDate)
                 .ToListAsync();
@@ -74,7 +74,7 @@ namespace MovieBooking.Infrastructure.Repositories
         }
         public async Task<List<Theatre>> GetTheatresAsync()
       => await DbContext.Theatres
-          .Where(t => t.IsActive)     //  only active theatres
+          .Where(t => t.IsActive)     
           .AsNoTracking()
           .ToListAsync();
 
@@ -86,7 +86,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<Screen>> GetScreensAsync()
        => await DbContext.Screens
-        .Where(s => s.IsActive)     //  only active screens
+        .Where(s => s.IsActive)     
         .AsNoTracking()
         .ToListAsync();
 
@@ -101,7 +101,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<List<ShowTime>> GetShowTimesAsync()
         {
             return await DbContext.ShowTimes
-                .Where(st => st.IsActive)          //  ONLY active
+                .Where(st => st.IsActive)          
                 .Include(st => st.Movie)
                 .Include(st => st.Theatre)
                 .Include(st => st.Screen)
@@ -216,8 +216,18 @@ namespace MovieBooking.Infrastructure.Repositories
 
             return screen;
         }
-        public async Task DeleteTheatreTimeSlotsAsync(Guid theatreId) { var timeSlots = await DbContext.TheatreTimeSlots.Where(ts => ts.TheatreId == theatreId).ToListAsync(); DbContext.TheatreTimeSlots.RemoveRange(timeSlots); await DbContext.SaveChangesAsync(); }
-        public async Task DeleteScreenSeatsAsync(Guid screenId) { var seats = await DbContext.Seats.Where(s => s.ScreenId == screenId).ToListAsync(); DbContext.Seats.RemoveRange(seats); await DbContext.SaveChangesAsync(); }
+        public async Task DeleteTheatreTimeSlotsAsync(Guid theatreId) 
+        { 
+            var timeSlots = await DbContext.TheatreTimeSlots.Where(ts => ts.TheatreId == theatreId).ToListAsync(); 
+            DbContext.TheatreTimeSlots.RemoveRange(timeSlots);
+            await DbContext.SaveChangesAsync(); 
+        }
+        public async Task DeleteScreenSeatsAsync(Guid screenId) 
+        {
+            var seats = await DbContext.Seats.Where(s => s.ScreenId == screenId).ToListAsync(); 
+            DbContext.Seats.RemoveRange(seats); 
+            await DbContext.SaveChangesAsync(); 
+        }
         public async Task<ShowTime> GetShowTimeByIdAsync(Guid showTimeId)
         {
             var showTime = await DbContext.ShowTimes
@@ -233,7 +243,6 @@ namespace MovieBooking.Infrastructure.Repositories
             return showTime;
         }
 
-
         public async Task<Language> GetLanguageByIdAsync(Guid languageId)
         {
             var language = await DbContext.Languages.FindAsync(languageId);
@@ -243,8 +252,6 @@ namespace MovieBooking.Infrastructure.Repositories
 
             return language;
         }
-
-        // ========== UPDATE METHODS ==========
 
         public async Task UpdateTheatreAsync(Theatre theatre)
         {
@@ -270,8 +277,6 @@ namespace MovieBooking.Infrastructure.Repositories
             await DbContext.SaveChangesAsync();
         }
 
-        // ========== DELETE METHODS ==========
-
         public async Task DeleteMovieAsync(Movie movie)
         {
             if (await MovieHasActiveShowTimesAsync(movie.MovieId))
@@ -284,8 +289,6 @@ namespace MovieBooking.Infrastructure.Repositories
             await DbContext.SaveChangesAsync();
         }
 
-
-
         public async Task DeleteTheatreAsync(Theatre theatre)
         {
             if (await TheatreHasActiveScreensAsync(theatre.TheatreId))
@@ -297,8 +300,6 @@ namespace MovieBooking.Infrastructure.Repositories
             theatre.IsActive = false;
             await DbContext.SaveChangesAsync();
         }
-
-
 
         public async Task DeleteScreenAsync(Screen screen)
         {
@@ -319,8 +320,6 @@ namespace MovieBooking.Infrastructure.Repositories
 
             await DbContext.SaveChangesAsync();
         }
-
-
 
         public async Task DeleteShowTimeAsync(ShowTime showTime)
         {
@@ -345,9 +344,6 @@ namespace MovieBooking.Infrastructure.Repositories
             admin.IsActive = false;
             await DbContext.SaveChangesAsync();
         }
-
-
-        // ========== VALIDATION HELPERS ==========
 
         public async Task<bool> MovieHasActiveShowTimesAsync(Guid movieId)
         {
@@ -378,10 +374,6 @@ namespace MovieBooking.Infrastructure.Repositories
             return await DbContext.Theatres
                 .AnyAsync(t => t.CreatedBy == adminId && t.IsActive);
         }
-
-        // ========== CASCADE DELETE HELPERS ==========
-
-
 
         public async Task<List<TheatreTimeSlot>> GetTheatreTimeSlotsAsync(Guid theatreId)
         {

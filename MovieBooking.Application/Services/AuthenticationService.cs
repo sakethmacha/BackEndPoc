@@ -23,17 +23,17 @@ namespace MovieBooking.Application.Services
             this.Configuration = Configuration;
         }
 
-        public async Task<AuthenticationResponseDto> RegisterAsync(RegisterRequestDto dto)
+        public async Task<AuthenticationResponseDto> RegisterAsync(RegisterRequestDto registerRequestDto)
         {
-            if (await UserRepository.GetByEmailAsync(dto.Email) != null)
+            if (await UserRepository.GetByEmailAsync(registerRequestDto.Email) != null)
                 throw new Exception("Email already registered");
 
             var user = new User
             {
                 UserId = Guid.NewGuid(),
-                Name = dto.Name,
-                Email = dto.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Name = registerRequestDto.Name,
+                Email = registerRequestDto.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(registerRequestDto.Password),
                 Role = UserRole.User,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -45,12 +45,12 @@ namespace MovieBooking.Application.Services
         }
 
 
-        public async Task<AuthenticationResponseDto> LoginAsync(LoginRequestDto Dto)
+        public async Task<AuthenticationResponseDto> LoginAsync(LoginRequestDto loginRequestDto)
         {
-            var User = await UserRepository.GetByEmailAsync(Dto.Email)
+            var User = await UserRepository.GetByEmailAsync(loginRequestDto.Email)
                 ?? throw new Exception("Invalid credentials");
 
-            if (!BCrypt.Net.BCrypt.Verify(Dto.Password, User.Password))
+            if (!BCrypt.Net.BCrypt.Verify(loginRequestDto.Password, User.Password))
                 throw new Exception("Invalid credentials");
 
             if (!User.IsActive)

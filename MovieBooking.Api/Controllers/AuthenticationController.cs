@@ -16,15 +16,15 @@ namespace MovieBooking.Api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterRequestDto Dto)
+        public async Task<IActionResult> Register(RegisterRequestDto registerRequestDto)
         {
-            return Ok(await AuthenticationService.RegisterAsync(Dto));
+            return Ok(await AuthenticationService.RegisterAsync(registerRequestDto));
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginRequestDto Dto)
+        public async Task<IActionResult> Login(LoginRequestDto loginRequestDto)
         {
-            return Ok(await AuthenticationService.LoginAsync(Dto));
+            return Ok(await AuthenticationService.LoginAsync(loginRequestDto));
         }
     }
 

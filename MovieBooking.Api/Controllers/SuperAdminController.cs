@@ -1,13 +1,15 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
 using System.Security.Claims;
+
 namespace MovieBooking.Api.Controllers
 {
     [ApiController]
     [Route("api/superadmin")]
-   // [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = "SuperAdmin")]
     public class SuperAdminController : ControllerBase
     {
         private readonly ISuperAdminService SuperAdminService;
