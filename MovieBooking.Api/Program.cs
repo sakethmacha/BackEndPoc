@@ -103,6 +103,12 @@ namespace MovieBooking.Api
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
             builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
+            //
+            // Repository
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+
+            // Service
+            builder.Services.AddScoped<IBookingService, BookingService>();
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {

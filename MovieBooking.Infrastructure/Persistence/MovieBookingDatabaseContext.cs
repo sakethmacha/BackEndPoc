@@ -21,6 +21,12 @@ namespace MovieBooking.Infrastructure.Persistence
 
         public DbSet<Language> Languages => Set<Language>();
         public DbSet<Seat> Seats => Set<Seat>();
+        //
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<BookingSeat> BookingSeats { get; set; }
+        public DbSet<SeatLock> SeatLocks { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<NotificationLog> NotificationLogs { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -170,7 +176,204 @@ namespace MovieBooking.Infrastructure.Persistence
                       .HasForeignKey(s => s.ScreenId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+            // Add this to your OnModelCreating method in MovieBookingDatabaseContext
 
+            // ========== BOOKING ENTITY ==========
+            modelBuilder.Entity<Booking>(entity =>
+            {
+                entity.HasKey(b => b.BookingId);
+
+                entity.Property(b => b.TotalAmount)
+                      .HasPrecision(10, 2)
+                      .IsRequired();
+
+                entity.Property(b => b.Status)
+                      .IsRequired();
+
+                entity.Property(b => b.CreatedAt)
+                      .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(b => b.BookingTime)
+                      .IsRequired(false);
+
+                entity.Property(b => b.PaymentId)
+                      .IsRequired(false);
+
+                // Relationships
+                entity.HasOne(b => b.User)
+                      .WithMany()
+                      .HasForeignKey(b => b.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(b => b.ShowTime)
+                      .WithMany()
+                      .HasForeignKey(b => b.ShowTimeId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(b => b.Payment)
+                      .WithOne(p => p.Booking)
+                      .HasForeignKey<Booking>(b => b.PaymentId)
+                      .OnDelete(DeleteBehavior.Restrict)
+                      .IsRequired(false);
+
+                // Indexes
+                entity.HasIndex(b => b.UserId);
+                entity.HasIndex(b => b.ShowTimeId);
+                entity.HasIndex(b => b.Status);
+                entity.HasIndex(b => b.CreatedAt);
+            });
+
+            // ========== BOOKING SEAT ENTITY ==========
+            modelBuilder.Entity<BookingSeat>(entity =>
+            {
+                entity.HasKey(bs => bs.BookingSeatId);
+
+                entity.Property(bs => bs.SeatPrice)
+                      .HasPrecision(10, 2)
+                      .IsRequired();
+
+                entity.Property(bs => bs.Status)
+                      .IsRequired();
+
+                // Relationships
+                entity.HasOne(bs => bs.Booking)
+                      .WithMany(b => b.BookingSeats)
+                      .HasForeignKey(bs => bs.BookingId)
+                      .OnDelete(DeleteBehavior.Cascade); // Cascade delete when booking is deleted
+
+                entity.HasOne(bs => bs.Seat)
+                      .WithMany()
+                      .HasForeignKey(bs => bs.SeatId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(bs => bs.ShowTime)
+                      .WithMany()
+                      .HasForeignKey(bs => bs.ShowTimeId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Composite unique index - prevent double booking same seat for same show
+                entity.HasIndex(bs => new { bs.ShowTimeId, bs.SeatId })
+                      .IsUnique()
+                      .HasFilter("[Status] != 2"); // Don't apply unique constraint for cancelled bookings (Status = CANCELLED = 2)
+
+                // Additional indexes for performance
+                entity.HasIndex(bs => bs.BookingId);
+                entity.HasIndex(bs => bs.ShowTimeId);
+            });
+
+            // ========== SEAT LOCK ENTITY ==========
+            modelBuilder.Entity<SeatLock>(entity =>
+            {
+                entity.HasKey(sl => sl.SeatLockId);
+
+                entity.Property(sl => sl.LockedAt)
+                      .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(sl => sl.ExpiresAt)
+                      .IsRequired();
+
+                entity.Property(sl => sl.Status)
+                      .IsRequired();
+
+                // Relationships
+                entity.HasOne(sl => sl.ShowTime)
+                      .WithMany()
+                      .HasForeignKey(sl => sl.ShowTimeId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(sl => sl.Seat)
+                      .WithMany()
+                      .HasForeignKey(sl => sl.SeatId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(sl => sl.User)
+                      .WithMany()
+                      .HasForeignKey(sl => sl.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // ✅ Composite UNIQUE filtered index (only ACTIVE locks)
+                entity.HasIndex(sl => new { sl.ShowTimeId, sl.SeatId })
+                      .IsUnique()
+                      .HasFilter("[Status] = 0"); // ACTIVE / LOCKED only
+
+                // Supporting indexes
+                entity.HasIndex(sl => sl.ExpiresAt);
+                entity.HasIndex(sl => sl.UserId);
+                entity.HasIndex(sl => new { sl.ShowTimeId, sl.Status });
+            });
+
+
+            // ========== PAYMENT ENTITY ==========
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.HasKey(p => p.PaymentId);
+
+                entity.Property(p => p.Amount)
+                      .HasPrecision(10, 2)
+                      .IsRequired();
+
+                entity.Property(p => p.PaymentMethod)
+                      .IsRequired();
+
+                entity.Property(p => p.PaymentStatus)
+                      .IsRequired();
+
+                entity.Property(p => p.TransactionId)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(p => p.PaymentGateway)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(p => p.PaidAt)
+                      .IsRequired(false);
+
+                entity.Property(p => p.CreatedAt)
+                      .HasDefaultValueSql("GETUTCDATE()");
+
+                // Relationship already defined in Booking entity (one-to-one)
+
+                // Indexes
+                entity.HasIndex(p => p.BookingId)
+                      .IsUnique();
+
+                entity.HasIndex(p => p.TransactionId)
+                      .IsUnique();
+
+                entity.HasIndex(p => p.PaymentStatus);
+                entity.HasIndex(p => p.CreatedAt);
+            });
+
+            // ========== NOTIFICATION LOG ENTITY ==========
+            modelBuilder.Entity<NotificationLog>(entity =>
+            {
+                entity.HasKey(nl => nl.NotificationLogId);
+
+                entity.Property(nl => nl.Type)
+                      .IsRequired();
+
+                entity.Property(nl => nl.Message)
+                      .IsRequired()
+                      .HasMaxLength(1000);
+
+                entity.Property(nl => nl.SentAt)
+                      .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(nl => nl.Status)
+                      .IsRequired();
+
+                // Relationships
+                entity.HasOne(nl => nl.User)
+                      .WithMany()
+                      .HasForeignKey(nl => nl.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes
+                entity.HasIndex(nl => nl.UserId);
+                entity.HasIndex(nl => nl.SentAt);
+                entity.HasIndex(nl => nl.Status);
+            });
 
         }
 
