@@ -38,5 +38,8 @@ namespace MovieBooking.Application.Interfaces.Repositories
 
         // User
         Task<User> GetUserByIdAsync(Guid userId);
+
+        //
+        Task<List<BookingSeat>> GetLockedBookingSeatsAsync(Guid showTimeId, List<Guid> seatIds);
     }
 }

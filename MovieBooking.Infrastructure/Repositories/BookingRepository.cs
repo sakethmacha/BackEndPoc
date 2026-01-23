@@ -276,5 +276,19 @@ namespace MovieBooking.Infrastructure.Repositories
                 throw new InvalidOperationException("User not found");
             return user;
         }
+        //
+       
+        public async Task<List<BookingSeat>> GetLockedBookingSeatsAsync(
+    Guid showTimeId,
+    List<Guid> seatIds)
+        {
+            return await _context.BookingSeats
+                .Where(bs =>
+                    bs.ShowTimeId == showTimeId &&
+                    seatIds.Contains(bs.SeatId) &&
+                    bs.Status == SeatLockStatus.LOCKED)
+                .ToListAsync();
+        }
+
     }
 }

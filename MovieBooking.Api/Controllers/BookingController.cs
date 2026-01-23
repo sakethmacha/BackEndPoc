@@ -91,7 +91,13 @@ namespace MovieBooking.Api.Controllers
         [HttpPost("payment")]
         public async Task<IActionResult> ProcessPayment([FromBody] ProcessPaymentRequestDto request)
         {
-            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            var userId = Guid.Parse(userIdClaim.Value);
+
             var payment = await _bookingService.ProcessPaymentAsync(userId, request);
             return Ok(payment);
         }

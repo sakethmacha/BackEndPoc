@@ -159,10 +159,24 @@ namespace MovieBooking.Application.Services
         public async Task<BookingConfirmationDto> CreateBookingAsync(Guid userId, CreateBookingRequestDto request)
         {
             // Verify seats are still available (locked by this user)
-            var available = await _bookingRepository.AreSeatsAvailableAsync(request.ShowTimeId, request.SeatIds);
 
-            if (!available)
-                throw new InvalidOperationException("One or more seats are no longer available");
+           var lockedSeats =
+    await _bookingRepository.GetLockedBookingSeatsAsync(
+        request.ShowTimeId,
+        request.SeatIds);
+
+if (lockedSeats.Count != request.SeatIds.Count)
+    throw new InvalidOperationException("One or more seats are not locked");
+
+foreach (var bs in lockedSeats)
+{
+    // Optional if you store userId on booking
+    if (bs.Booking.UserId != userId)
+        throw new InvalidOperationException("Seat locked by another user");
+}
+
+
+
 
             var showTime = await _bookingRepository.GetShowTimeByIdAsync(request.ShowTimeId);
             var seats = await _bookingRepository.GetSeatsByScreenAsync(showTime.ScreenId);
