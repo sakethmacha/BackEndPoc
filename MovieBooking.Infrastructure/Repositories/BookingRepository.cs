@@ -125,7 +125,18 @@ namespace MovieBooking.Infrastructure.Repositories
             {
                 seatlock.Status = SeatLockStatus.EXPIRED;
             }
+            var now = DateTime.UtcNow;
 
+            var expiredBookings = await _context.Bookings
+       .Where(b =>
+           b.Status == BookingStatus.PENDING &&
+           b.CreatedAt.AddMinutes(5) <= now)
+       .ToListAsync();
+
+            foreach (var booking in expiredBookings)
+            {
+                booking.Status = BookingStatus.FAILED;
+            }
             await _context.SaveChangesAsync();
         }
 
@@ -288,6 +299,45 @@ namespace MovieBooking.Infrastructure.Repositories
                     seatIds.Contains(bs.SeatId) &&
                     bs.Status == SeatLockStatus.LOCKED)
                 .ToListAsync();
+        }
+        public async Task<bool> CanUserBookSeatsAsync(Guid showTimeId,List<Guid> seatIds,Guid userId)
+        {
+            var now = DateTime.UtcNow;
+
+            return !await _context.SeatLocks
+                .AnyAsync(sl =>
+                    sl.ShowTimeId == showTimeId
+                    && seatIds.Contains(sl.SeatId)
+                    &&
+                    (
+                        // ❌ Seat already booked (final)
+                        sl.Status == SeatLockStatus.BOOKED
+
+                        // ❌ Seat locked by another user and not expired
+                        || (sl.Status == SeatLockStatus.LOCKED
+                            && sl.UserId != userId
+                            && sl.ExpiresAt > now)
+                    )
+                );
+        }
+        // MovieBooking.Infrastructure/Repositories/BookingRepository.cs
+
+        public async Task ConvertLocksToBookingAsync(Guid userId, Guid showTimeId, List<Guid> seatIds)
+        {
+            var locks = await _context.SeatLocks
+                .Where(sl => sl.UserId == userId
+                    && sl.ShowTimeId == showTimeId
+                    && seatIds.Contains(sl.SeatId)
+                    && sl.Status == SeatLockStatus.LOCKED)
+                .ToListAsync();
+
+            // Don't delete locks, just mark them as expired since booking is created
+            foreach (var seatlock in locks)
+    {
+                seatlock.Status = SeatLockStatus.EXPIRED;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
     }

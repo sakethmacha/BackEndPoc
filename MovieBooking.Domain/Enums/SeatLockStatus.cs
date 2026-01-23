@@ -5,6 +5,6 @@ namespace MovieBooking.Domain.Enums
     {
         LOCKED = 0,
         EXPIRED = 1,
-        BOOKED=3
+        BOOKED=2
     }
 }

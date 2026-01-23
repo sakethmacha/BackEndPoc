@@ -41,5 +41,12 @@ namespace MovieBooking.Application.Interfaces.Repositories
 
         //
         Task<List<BookingSeat>> GetLockedBookingSeatsAsync(Guid showTimeId, List<Guid> seatIds);
+
+        Task<bool> CanUserBookSeatsAsync(
+    Guid showTimeId,
+    List<Guid> seatIds,
+    Guid userId);
+
+        Task ConvertLocksToBookingAsync(Guid userId, Guid showTimeId, List<Guid> seatIds);
     }
 }

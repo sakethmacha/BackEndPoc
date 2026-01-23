@@ -118,9 +118,11 @@ namespace MovieBooking.Application.Services
         public async Task<LockSeatsResponseDto> LockSeatsAsync(Guid userId, LockSeatsRequestDto request)
         {
             // Validate seats are available
-            var available = await _bookingRepository.AreSeatsAvailableAsync(request.ShowTimeId, request.SeatIds);
-
-            if (!available)
+            // var available = await _bookingRepository.AreSeatsAvailableAsync(request.ShowTimeId, request.SeatIds);
+            var activeLocks =
+         await _bookingRepository.GetActiveSeatLocksForShowAsync(
+             request.ShowTimeId);
+            if (activeLocks.Any(sl => request.SeatIds.Contains(sl.SeatId)))
             {
                 return new LockSeatsResponseDto
                 {
@@ -158,25 +160,24 @@ namespace MovieBooking.Application.Services
 
         public async Task<BookingConfirmationDto> CreateBookingAsync(Guid userId, CreateBookingRequestDto request)
         {
+
             // Verify seats are still available (locked by this user)
+            //var available = await _bookingRepository.AreSeatsAvailableAsync(request.ShowTimeId, request.SeatIds);
 
-           var lockedSeats =
-    await _bookingRepository.GetLockedBookingSeatsAsync(
+            //if (!available)
+            //    throw new InvalidOperationException("One or more seats are no longer available");
+
+            var canBook = await _bookingRepository
+    .CanUserBookSeatsAsync(
         request.ShowTimeId,
-        request.SeatIds);
+        request.SeatIds,
+        userId);
 
-if (lockedSeats.Count != request.SeatIds.Count)
-    throw new InvalidOperationException("One or more seats are not locked");
-
-foreach (var bs in lockedSeats)
-{
-    // Optional if you store userId on booking
-    if (bs.Booking.UserId != userId)
-        throw new InvalidOperationException("Seat locked by another user");
-}
-
-
-
+            if (!canBook)
+            {
+                throw new InvalidOperationException(
+                    "You can only book seats locked by you");
+            }
 
             var showTime = await _bookingRepository.GetShowTimeByIdAsync(request.ShowTimeId);
             var seats = await _bookingRepository.GetSeatsByScreenAsync(showTime.ScreenId);
@@ -197,16 +198,16 @@ foreach (var bs in lockedSeats)
 
             await _bookingRepository.CreateBookingAsync(booking);
 
-            // Create booking seats
-            var bookingSeats = selectedSeats.Select(s => new BookingSeat
-            {
-                BookingSeatId = Guid.NewGuid(),
-                BookingId = booking.BookingId,
-                SeatId = s.SeatId,
-                ShowTimeId = request.ShowTimeId,
-                SeatPrice = showTime.BasePrice * s.PriceMultiplier,
-                Status = SeatLockStatus.LOCKED
-            }).ToList();
+            //Create booking seats
+           var bookingSeats = selectedSeats.Select(s => new BookingSeat
+           {
+               BookingSeatId = Guid.NewGuid(),
+               BookingId = booking.BookingId,
+               SeatId = s.SeatId,
+               ShowTimeId = request.ShowTimeId,
+               SeatPrice = showTime.BasePrice * s.PriceMultiplier,
+               Status = SeatLockStatus.LOCKED
+           }).ToList();
 
             await _bookingRepository.CreateBookingSeatsAsync(bookingSeats);
 
@@ -216,7 +217,7 @@ foreach (var bs in lockedSeats)
                 BookingId = booking.BookingId,
                 BookingReference = booking.BookingId.ToString().Substring(0, 8).ToUpper(),
                 TotalAmount = totalAmount,
-                Status = BookingStatus.PENDING.ToString(),
+                Status = BookingStatus.PENDING.ToString(),//
                 CreatedAt = booking.CreatedAt,
                 Movie = new MovieDetailsDto
                 {
@@ -240,19 +241,24 @@ foreach (var bs in lockedSeats)
             };
         }
 
-        public async Task<PaymentResponseDto> ProcessPaymentAsync(Guid userId, ProcessPaymentRequestDto request)
+        public async Task<PaymentResponseDto> ProcessPaymentAsync(
+     Guid userId,
+     ProcessPaymentRequestDto request)
         {
-            var booking = await _bookingRepository.GetBookingByIdAsync(request.BookingId);
+            var booking = await _bookingRepository
+                .GetBookingByIdAsync(request.BookingId);
 
-            // Verify booking belongs to user
+            // 1️⃣ Verify booking belongs to user
             if (booking.UserId != userId)
-                throw new UnauthorizedAccessException("Unauthorized access to booking");
+                throw new UnauthorizedAccessException(
+                    "Unauthorized access to booking");
 
-            // Verify booking is in pending status
+            // 2️⃣ Verify booking is pending
             if (booking.Status != BookingStatus.PENDING)
-                throw new InvalidOperationException("Booking is not in pending status");
+                throw new InvalidOperationException(
+                    "Booking is not in pending status");
 
-            // Create payment record
+            // 3️⃣ Create payment record
             var payment = new Payment
             {
                 PaymentId = Guid.NewGuid(),
@@ -260,27 +266,44 @@ foreach (var bs in lockedSeats)
                 Amount = booking.TotalAmount,
                 PaymentMethod = request.PaymentMethod,
                 PaymentStatus = PaymentStatus.PENDING,
-                TransactionId = Guid.NewGuid().ToString(), // In real scenario, this comes from payment gateway
+                TransactionId = Guid.NewGuid().ToString(),
                 PaymentGateway = request.PaymentGateway,
                 CreatedAt = DateTime.UtcNow
             };
 
             await _bookingRepository.CreatePaymentAsync(payment);
 
-            // Simulate payment processing (in real scenario, integrate with payment gateway)
-            // For now, mark as success
+            // 4️⃣ Simulate payment success
             payment.PaymentStatus = PaymentStatus.SUCCESS;
             payment.PaidAt = DateTime.UtcNow;
             await _bookingRepository.UpdatePaymentAsync(payment);
 
-            // Update booking status
+            // 5️⃣ Confirm booking
             booking.Status = BookingStatus.CONFIRMED;
             booking.BookingTime = DateTime.UtcNow;
             booking.PaymentId = payment.PaymentId;
             await _bookingRepository.UpdateBookingAsync(booking);
 
-            // Send notification
-            var user = await _bookingRepository.GetUserByIdAsync(userId);
+            // 6️⃣ Get locked seats for this booking
+            var seatLocks = await _bookingRepository
+                .GetActiveSeatLocksForShowAsync(booking.ShowTimeId);
+
+            var userSeatLocks = seatLocks
+                .Where(sl =>
+                    sl.UserId == userId &&
+                    sl.Status == SeatLockStatus.LOCKED)
+                .ToList();
+
+            var seatIds = userSeatLocks.Select(sl => sl.SeatId).ToList();
+
+           
+            // 8️⃣ Convert seat locks (expire them)
+            await _bookingRepository.ConvertLocksToBookingAsync(
+                userId,
+                booking.ShowTimeId,
+                seatIds);
+
+            // 9️⃣ Send notification
             await _bookingRepository.AddNotificationLogAsync(new NotificationLog
             {
                 NotificationLogId = Guid.NewGuid(),
@@ -291,6 +314,7 @@ foreach (var bs in lockedSeats)
                 Status = NotificationStatus.SENT
             });
 
+            // 🔟 Return response
             return new PaymentResponseDto
             {
                 PaymentId = payment.PaymentId,

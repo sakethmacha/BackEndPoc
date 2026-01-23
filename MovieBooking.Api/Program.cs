@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -104,6 +103,8 @@ namespace MovieBooking.Api
             builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
             builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
             //
+            builder.Services.AddHostedService<SeatLockCleanupService>();
+
             // Repository
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 

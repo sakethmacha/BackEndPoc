@@ -136,5 +136,7 @@ namespace MovieBooking.Api.Controllers
             await _bookingService.CancelBookingAsync(userId, request);
             return Ok(new { message = "Booking cancelled successfully" });
         }
+
+
     }
 }
