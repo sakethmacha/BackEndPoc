@@ -82,8 +82,11 @@ namespace MovieBooking.Application.Interfaces.Repositories
         Task<List<TheatreTimeSlot>> GetTheatreTimeSlotsAsync(Guid theatreId);
         Task<List<Seat>> GetScreenSeatsAsync(Guid screenId);
 
-        // Already in previous implementation, but here's the complete list:
-        
+
+        //
+        Task<List<AdminRequest>> GetAllPendingRequestsAsync();
+        Task<List<AdminRequest>> GetAllRequestsAsync();
+
     }
 
 

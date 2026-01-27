@@ -2,6 +2,7 @@
 using MovieBooking.Domain.Entities;
 namespace MovieBooking.Application.Interfaces.Services
 {
+    using MovieBooking.Application.DTOs.Admin;
     using MovieBooking.Application.DTOs.SuperAdmin;
 
     public interface ISuperAdminService
@@ -51,6 +52,13 @@ namespace MovieBooking.Application.Interfaces.Services
         Task<ShowTimeResponseDto> GetShowTimeByIdAsync(Guid showTimeId);
         Task<LanguageDto> GetLanguageByIdAsync(Guid languageId);
         Task<AdminDto> GetAdminByIdAsync(Guid adminId);
+
+        //
+        Task<List<AdminRequestDto>> GetAllPendingRequestsAsync();
+        string GetRequestDetails(AdminRequest request);
+
+        Task<List<AdminRequestDto>> GetAllRequestsAsync();
+
 
     }
 }

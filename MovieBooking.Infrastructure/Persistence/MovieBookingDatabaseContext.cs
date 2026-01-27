@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Domain.Entities;
+using MovieBooking.Domain.Enums;
 using System;
 
 namespace MovieBooking.Infrastructure.Persistence
@@ -374,7 +375,35 @@ namespace MovieBooking.Infrastructure.Persistence
                 entity.HasIndex(nl => nl.SentAt);
                 entity.HasIndex(nl => nl.Status);
             });
+            // Add this to OnModelCreating method
 
+            // AdminRequest Configuration
+            modelBuilder.Entity<AdminRequest>(entity =>
+            {
+                entity.HasKey(e => e.AdminRequestId);
+
+                entity.HasOne(e => e.RequestedByUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.RequestedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Screen Configuration - Add ApprovalStatus
+            modelBuilder.Entity<Screen>(entity =>
+            {
+                entity.HasKey(e => e.ScreenId);
+
+                entity.Property(e => e.ApprovalStatus)
+                    .HasDefaultValue(ApprovalStatus.APPROVED);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasOne(e => e.Theatre)
+                    .WithMany(t => t.Screens)
+                    .HasForeignKey(e => e.TheatreId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
 
     }

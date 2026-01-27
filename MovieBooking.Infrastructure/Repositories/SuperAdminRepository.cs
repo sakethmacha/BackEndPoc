@@ -388,5 +388,22 @@ namespace MovieBooking.Infrastructure.Repositories
                 .Where(s => s.ScreenId == screenId)
                 .ToListAsync();
         }
+        //
+        public async Task<List<AdminRequest>> GetAllPendingRequestsAsync()
+        {
+            return await DbContext.AdminRequests
+                .Where(r => r.Status == ApprovalStatus.PENDING)
+                .Include(r => r.RequestedByUser)
+                .OrderBy(r => r.RequestedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<AdminRequest>> GetAllRequestsAsync()
+        {
+            return await DbContext.AdminRequests
+                .Include(r => r.RequestedByUser)
+                .OrderByDescending(r => r.RequestedAt)
+                .ToListAsync();
+        }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Application.Services;
 using System.Security.Claims;
 
 namespace MovieBooking.Api.Controllers
@@ -111,6 +112,20 @@ namespace MovieBooking.Api.Controllers
         {
             var showTimes = await SuperAdminService.GetShowTimesAsync();
             return Ok(showTimes);
+        }
+        // ---------- Requests ----------
+        [HttpGet("requests")]
+        public async Task<IActionResult> GetAllRequests()
+        {
+            var requests = await SuperAdminService.GetAllRequestsAsync();
+            return Ok(requests);
+        }
+
+        [HttpGet("requests/pending")]
+        public async Task<IActionResult> GetPendingRequests()
+        {
+            var requests = await SuperAdminService.GetAllPendingRequestsAsync();
+            return Ok(requests);
         }
         // ---------- APPROVAL ----------
         [HttpPut("requests/{requestId}/approve")]

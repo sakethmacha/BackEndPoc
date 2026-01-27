@@ -2,7 +2,6 @@
 {
     public enum SeatLayoutType
     {
-        STANDARD=0,
-        VIP=1,
+        STANDARD=0
     }
 }

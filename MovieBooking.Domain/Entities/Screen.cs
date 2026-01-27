@@ -14,7 +14,12 @@ namespace MovieBooking.Domain.Entities
 
         public ICollection<ShowTime> ShowTimes { get; set; } = new List<ShowTime>();
         public ICollection<Seat> Seats { get; set; } = new List<Seat>();
+        //
+        public ApprovalStatus ApprovalStatus { get; set; } // ADD THIS
+        public DateTime CreatedAt { get; set; } // ADD THIS
 
+        // Navigation properties
+        public Theatre Theatre { get; set; } // ADD THIS if not present
     }
 
 }

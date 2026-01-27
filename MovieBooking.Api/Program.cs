@@ -103,6 +103,10 @@ namespace MovieBooking.Api
             builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
             builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
             //
+            // Add these lines in your service registration
+            builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+            //
             builder.Services.AddHostedService<SeatLockCleanupService>();
 
             // Repository

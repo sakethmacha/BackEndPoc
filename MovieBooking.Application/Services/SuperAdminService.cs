@@ -1,4 +1,5 @@
-﻿using MovieBooking.Application.DTOs.SuperAdmin;
+﻿using MovieBooking.Application.DTOs.Admin;
+using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
 using MovieBooking.Domain.Entities;
@@ -359,7 +360,6 @@ namespace MovieBooking.Application.Services
             return showTimes.Select(st => new ShowTimeResponseDto
             {
                 ShowTimeId = st.ShowTimeId,
-
                 MovieTitle = st.Movie.Title,
                 TheatreName = st.Theatre.Name,
                 ScreenName = st.Screen.ScreenName,
@@ -776,5 +776,42 @@ namespace MovieBooking.Application.Services
                 IsActive = admin.IsActive
             };
         }
+
+        //
+        public async Task<List<AdminRequestDto>> GetAllPendingRequestsAsync()
+        {
+            var requests = await SuperAdminRepository.GetAllPendingRequestsAsync();
+
+            return requests.Select(r => new AdminRequestDto
+            {
+                AdminRequestId = r.AdminRequestId,
+                RequestType = r.RequestType.ToString(),
+                Status = r.Status.ToString(),
+                RequestedAt = r.RequestedAt,
+                ReviewedAt = r.ReviewedAt,
+                RequestDetails = GetRequestDetails(r)
+            }).ToList();
+        }
+        public async Task<List<AdminRequestDto>> GetAllRequestsAsync()
+        {
+            var requests = await SuperAdminRepository.GetAllRequestsAsync();
+
+            return requests.Select(r => new AdminRequestDto
+            {
+                AdminRequestId = r.AdminRequestId,
+                RequestType = r.RequestType.ToString(),
+                Status = r.Status.ToString(),
+                RequestedAt = r.RequestedAt,
+                ReviewedAt = r.ReviewedAt,
+                RequestDetails = GetRequestDetails(r)
+            }).ToList();
+        }
+
+        public string GetRequestDetails(AdminRequest request)
+        {
+            // This would fetch the actual theatre/screen details based on ReferenceId
+            return $"{request.RequestType} - Reference ID: {request.ReferenceId}";
+        }
+
     }
 }
