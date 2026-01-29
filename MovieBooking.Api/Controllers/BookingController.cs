@@ -119,6 +119,8 @@ namespace MovieBooking.Api.Controllers
         /// Get details of a specific booking
         /// </summary>
         [HttpGet("{bookingId}")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetBookingDetails(Guid bookingId)
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -136,7 +138,5 @@ namespace MovieBooking.Api.Controllers
             await _bookingService.CancelBookingAsync(userId, request);
             return Ok(new { message = "Booking cancelled successfully" });
         }
-
-
     }
 }

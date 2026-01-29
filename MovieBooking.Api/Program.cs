@@ -1,7 +1,9 @@
+using FastEndpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MovieBooking.Api.FastEndPoints;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
 using MovieBooking.Application.Services;
@@ -21,6 +23,7 @@ namespace MovieBooking.Api
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddFastEndpoints();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -115,6 +118,7 @@ namespace MovieBooking.Api
             // Service
             builder.Services.AddScoped<IBookingService, BookingService>();
             var app = builder.Build();
+           
             using (var scope = app.Services.CreateScope())
             {
                 var DbContext = scope.ServiceProvider
@@ -135,7 +139,7 @@ namespace MovieBooking.Api
 
 
             app.MapControllers();
-
+            app.UseFastEndpoints();
             app.MapGet("/health", () => Results.Ok("API is healthy"));
 
             app.Run();
