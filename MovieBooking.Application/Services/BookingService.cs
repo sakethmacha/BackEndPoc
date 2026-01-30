@@ -389,7 +389,7 @@ namespace MovieBooking.Application.Services
         {
             var booking = await _bookingRepository.GetBookingByIdAsync(request.BookingId);
 
-            // Verify booking belongs to user
+            //// Verify booking belongs to user
             if (booking.UserId != userId)
                 throw new UnauthorizedAccessException("Unauthorized access to booking");
 

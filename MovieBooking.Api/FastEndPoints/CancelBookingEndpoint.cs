@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace MovieBooking.Api.FastEndPoints
 {
-    public class CancelBookingEndpoint : Endpoint<CancelBookingRequestDto, EmptyResponse>
+    public class CancelBookingEndpoint : Endpoint<CancelBookingRequestDto, CancelBookingResponseDto>
     {
         private readonly IBookingService _bookingService;
 
@@ -18,7 +18,8 @@ namespace MovieBooking.Api.FastEndPoints
         {
             Post("/api/book/cancel");
             Roles("User");
-
+            PreProcessor<CancelBookingPreProcessor>();
+            PostProcessor<CancelBookingPostProcessor>();
             Summary(s =>
             {
                 s.Summary = "Cancel a booking";
@@ -39,16 +40,16 @@ namespace MovieBooking.Api.FastEndPoints
             await _bookingService.CancelBookingAsync(userId, request);
 
             //  custom status code
-            //await SendAsync(
-            //            new CancelBookingResponseDto
-            //            {
-            //                Message = "Booking cancelled successfully"
-            //            },
-            //            StatusCodes.Status200OK,
-            //            ct);
+            await SendAsync(
+                        new CancelBookingResponseDto
+                        {
+                            Message = "Booking cancelled successfully"
+                        },
+                        StatusCodes.Status200OK,
+                        ct);
             //HttpContext.Response.StatusCode = StatusCodes.Status204NoContent;
             //Response = new EmptyResponse();
-            await SendNoContentAsync(ct);
+            //await SendNoContentAsync(ct);
 
         }
     }

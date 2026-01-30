@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MovieBooking.Api.FastEndPoints;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
 using MovieBooking.Application.Services;
