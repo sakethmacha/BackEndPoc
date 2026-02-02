@@ -131,6 +131,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task UpdateRequestAsync(AdminRequest adminRequest)
         {
             DbContext.AdminRequests.Update(adminRequest);
+            
             await DbContext.SaveChangesAsync();
         }
 
@@ -138,6 +139,8 @@ namespace MovieBooking.Infrastructure.Repositories
         {
             var theatre = await DbContext.Theatres.FindAsync(theatreId);
             theatre.IsActive = true;
+            //var timeslot= await DbContext.TheatreTimeSlots.FindAsync(theatreId);
+            //timeslot.IsActive = true;
             theatre.ApprovalStatus = ApprovalStatus.APPROVED;
         }
         public async Task<List<Screen>> GetByTheatreIdAsync(Guid theatreId)
