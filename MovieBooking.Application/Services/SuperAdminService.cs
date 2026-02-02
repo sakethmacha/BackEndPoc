@@ -286,9 +286,6 @@ namespace MovieBooking.Application.Services
                 case RequestType.SCREEN:
                     await SuperAdminRepository.ApproveScreenAsync(request.ReferenceId);
                     break;
-                case RequestType.SHOWTIME:
-                    await SuperAdminRepository.ApproveShowTimeAsync(request.ReferenceId);
-                    break;
             }
 
             await SuperAdminRepository.UpdateRequestAsync(request);

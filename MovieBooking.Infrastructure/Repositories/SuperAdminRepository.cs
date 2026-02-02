@@ -151,6 +151,7 @@ namespace MovieBooking.Infrastructure.Repositories
         {
             var screen = await DbContext.Screens.FindAsync(screenId);
             screen.IsActive = true;
+            screen.ApprovalStatus = ApprovalStatus.APPROVED;
         }
         public async Task<bool> ShowTimeConflictExistsAsync(
     Guid screenId, DateTime start, DateTime end)

@@ -394,7 +394,7 @@ namespace MovieBooking.Infrastructure.Persistence
                 entity.HasKey(e => e.ScreenId);
 
                 entity.Property(e => e.ApprovalStatus)
-                    .HasDefaultValue(ApprovalStatus.APPROVED);
+                    .HasDefaultValue(ApprovalStatus.PENDING);
 
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("GETUTCDATE()");

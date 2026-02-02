@@ -10,12 +10,12 @@ namespace MovieBooking.Domain.Entities
         public string ScreenName { get; set; }
         public SeatLayoutType SeatLayoutType { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public bool IsActive { get; set; } 
 
         public ICollection<ShowTime> ShowTimes { get; set; } = new List<ShowTime>();
         public ICollection<Seat> Seats { get; set; } = new List<Seat>();
         //
-        public ApprovalStatus ApprovalStatus { get; set; } // ADD THIS
+        public ApprovalStatus ApprovalStatus { get; set; }// ADD THIS
         public DateTime CreatedAt { get; set; } // ADD THIS
 
         // Navigation properties

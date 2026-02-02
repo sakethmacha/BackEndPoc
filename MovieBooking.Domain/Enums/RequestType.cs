@@ -2,9 +2,7 @@
 {
     public enum RequestType
     {
-        THEATRE,
-        SCREEN,
-        SHOWTIME,
-        ADMIN_ACCESS
+        THEATRE=0,
+        SCREEN=1
     }
 }

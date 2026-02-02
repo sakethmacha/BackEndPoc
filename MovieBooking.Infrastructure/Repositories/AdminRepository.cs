@@ -107,6 +107,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+
         public async Task<Screen> GetScreenByIdAsync(Guid screenId)
         {
             var screen = await _db.Screens
