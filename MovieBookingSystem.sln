@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieBooking.Tests", "Movie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieBooking.XunitTests", "MovieBooking.XunitTests\MovieBooking.XunitTests.csproj", "{C797FA06-A38F-4FC7-85EB-C56CED88162B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MovieBooking.XUnitTests.Integration", "MovieBooking.XUnitTests.Integration\MovieBooking.XUnitTests.Integration.csproj", "{B89B7963-68BD-4899-A1CB-7A08E512BCCD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{C797FA06-A38F-4FC7-85EB-C56CED88162B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C797FA06-A38F-4FC7-85EB-C56CED88162B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C797FA06-A38F-4FC7-85EB-C56CED88162B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B89B7963-68BD-4899-A1CB-7A08E512BCCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B89B7963-68BD-4899-A1CB-7A08E512BCCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B89B7963-68BD-4899-A1CB-7A08E512BCCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B89B7963-68BD-4899-A1CB-7A08E512BCCD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

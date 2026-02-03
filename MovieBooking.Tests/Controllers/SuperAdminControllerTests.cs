@@ -19,7 +19,7 @@ namespace MovieBooking.Tests.Controllers
             _controller = new SuperAdminController(_serviceMock.Object);
         }
 
-        //  Test 1: Returns OkResult
+        //  Returns OkResult
         [Test]
         public async Task AddMovie_ValidDto_ReturnsOk()
         {
@@ -30,7 +30,7 @@ namespace MovieBooking.Tests.Controllers
             Assert.IsInstanceOf<OkResult>(result);
         }
 
-        //  Test 2: Calls service once
+        //  Calls service once
         [Test]
         public async Task AddMovie_ValidDto_CallsServiceOnce()
         {
@@ -44,7 +44,7 @@ namespace MovieBooking.Tests.Controllers
             );
         }
 
-        //  Test 3: Passes correct DTO
+        //  Passes correct DTO
         [Test]
         public async Task AddMovie_PassesCorrectDtoToService()
         {
@@ -60,7 +60,7 @@ namespace MovieBooking.Tests.Controllers
             );
         }
 
-        //  Test 4: Works with null DTO (current behavior)
+        //  Works with null DTO (current behavior)
         [Test]
         public async Task AddMovie_NullDto_ReturnsOk()
         {
@@ -69,7 +69,7 @@ namespace MovieBooking.Tests.Controllers
             Assert.IsInstanceOf<OkResult>(result);
         }
 
-        //  Test 5: Exception bubbles up
+        //  Exception bubbles up
         [Test]
         public void AddMovie_ServiceThrowsException_ThrowsException()
         {

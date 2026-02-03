@@ -66,7 +66,7 @@ namespace MovieBooking.Application.Services
                 TheatreId = theatre.TheatreId,
                 StartTime = p.Start,
                 EndTime = p.End,
-                IsActive = false // Will be activated upon approval
+                IsActive = true 
             }).ToList();
 
             // Create admin request

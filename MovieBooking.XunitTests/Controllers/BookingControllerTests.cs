@@ -37,42 +37,7 @@ namespace MovieBooking.XunitTests.Controllers
                 HttpContext = new DefaultHttpContext { User = user }
             };
         }
-    //    [Fact]
-    //    public async Task GetShowTimes_ValidDate_ReturnsOk()
-    //    {
-    //        var movieId = Guid.NewGuid();
-    //        var date = "2026-02-01";
 
-    //        _serviceMock
-    //.Setup(s => s.GetShowTimesByMovieAsync(movieId, It.IsAny<DateOnly>()))
-    //.ReturnsAsync(new List<TheatreShowDto>
-    //{
-    //    new TheatreShowDto
-    //    {
-    //        TheatreId = Guid.NewGuid(),
-    //        TheatreName = "PVR Cinemas",
-    //        Location = "Hyderabad",
-    //        Shows = new List<ShowDto>
-    //        {
-    //            new ShowDto
-    //            {
-    //                ShowDate = "10:00 AM"
-    //            },
-    //            new ShowDto
-    //            {
-    //                ShowTime = "01:00 PM"
-    //            }
-    //        }
-    //    }
-    //});
-
-
-
-        //    var result = await _controller.GetShowTimes(movieId, date);
-
-        //    var ok = Assert.IsType<OkObjectResult>(result);
-        //    Assert.NotNull(ok.Value);
-        //}
         [Fact]
         public async Task GetShowTimes_InvalidDate_ReturnsBadRequest()
         {
@@ -140,6 +105,5 @@ namespace MovieBooking.XunitTests.Controllers
                 async () => await _controller.LockSeats(new LockSeatsRequestDto())
             );
         }
-
     }
 }
