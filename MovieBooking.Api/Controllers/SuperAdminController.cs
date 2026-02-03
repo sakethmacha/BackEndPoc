@@ -43,8 +43,6 @@ namespace MovieBooking.Api.Controllers
         [HttpPost("movies")]
         public async Task<IActionResult> AddMovie(AddMovieDto addMovieDto)
         {
-            var isAuth = User.Identity?.IsAuthenticated;
-            var name = User.Identity?.Name;
             await SuperAdminService.AddMovieAsync(addMovieDto);
             return Ok();
         }

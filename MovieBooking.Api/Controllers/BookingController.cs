@@ -39,7 +39,7 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetShowTimes(Guid movieId, [FromQuery] string date)
         {
             if (!DateOnly.TryParse(date, out var parsedDate))
-                return BadRequest("Invalid date format. Use YYYY-MM-DD");
+            return BadRequest("Invalid date format. Use YYYY-MM-DD");
 
             var showTimes = await _bookingService.GetShowTimesByMovieAsync(movieId, parsedDate);
             return Ok(showTimes);
