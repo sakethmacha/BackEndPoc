@@ -143,6 +143,14 @@ namespace MovieBooking.Infrastructure.Repositories
             //timeslot.IsActive = true;
             theatre.ApprovalStatus = ApprovalStatus.APPROVED;
         }
+        public async Task RejectTheatreAsync(Guid theatreId)
+        {
+            var theatre = await DbContext.Theatres.FindAsync(theatreId);
+         
+            //var timeslot= await DbContext.TheatreTimeSlots.FindAsync(theatreId);
+            //timeslot.IsActive = true;
+            theatre.ApprovalStatus = ApprovalStatus.REJECTED;
+        }
         public async Task<List<Screen>> GetByTheatreIdAsync(Guid theatreId)
         {
             return await DbContext.Screens
@@ -155,6 +163,12 @@ namespace MovieBooking.Infrastructure.Repositories
             var screen = await DbContext.Screens.FindAsync(screenId);
             screen.IsActive = true;
             screen.ApprovalStatus = ApprovalStatus.APPROVED;
+        }
+        public async Task RejectScreenAsync(Guid screenId)
+        {
+            var screen = await DbContext.Screens.FindAsync(screenId);
+          
+            screen.ApprovalStatus = ApprovalStatus.REJECTED;
         }
         public async Task<bool> ShowTimeConflictExistsAsync(
     Guid screenId, DateTime start, DateTime end)
@@ -398,6 +412,8 @@ namespace MovieBooking.Infrastructure.Repositories
             return await DbContext.AdminRequests
                 .Where(r => r.Status == ApprovalStatus.PENDING)
                 .Include(r => r.RequestedByUser)
+                //.Include(r => r.Theatre)
+                //.Include(r => r.Screen)
                 .OrderBy(r => r.RequestedAt)
                 .ToListAsync();
         }

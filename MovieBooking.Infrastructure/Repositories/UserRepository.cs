@@ -7,22 +7,22 @@ namespace MovieBooking.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly MovieBookingDatabaseContext Context;
+        private readonly MovieBookingDatabaseContext DbContext;
 
         public UserRepository(MovieBookingDatabaseContext Context)
         {
-            this.Context = Context;
+            this.DbContext = Context;
         }
 
         public async Task<User?> GetByEmailAsync(string Email)
         {
-            return await Context.Users.FirstOrDefaultAsync(x => x.Email == Email);
+            return await DbContext.Users.FirstOrDefaultAsync(x => x.Email == Email);
         }
 
         public async Task AddAsync(User User)
         {
-            Context.Users.Add(User);
-            await Context.SaveChangesAsync();
+            DbContext.Users.Add(User);
+            await DbContext.SaveChangesAsync();
         }
     }
 

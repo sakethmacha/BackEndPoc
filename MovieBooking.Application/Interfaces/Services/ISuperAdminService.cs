@@ -57,7 +57,7 @@ namespace MovieBooking.Application.Interfaces.Services
         Task<List<AdminRequestDto>> GetAllPendingRequestsAsync();
         string GetRequestDetails(AdminRequest request);
 
-        Task<List<AdminRequestDto>> GetAllRequestsAsync();
+        Task<List<AdminRequestResponseDto>> GetAllRequestsAsync();
 
 
     }

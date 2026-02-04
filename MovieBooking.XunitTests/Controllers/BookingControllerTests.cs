@@ -16,13 +16,13 @@ namespace MovieBooking.XunitTests.Controllers
 
     public class BookingControllerTests
     {
-        private readonly Mock<IBookingService> _serviceMock;
-        private readonly BookingController _controller;
+        private readonly Mock<IBookingService> ServiceMock;
+        private readonly BookingController BookingController;
 
         public BookingControllerTests()
         {
-            _serviceMock = new Mock<IBookingService>();
-            _controller = new BookingController(_serviceMock.Object);
+            ServiceMock = new Mock<IBookingService>();
+            BookingController = new BookingController(ServiceMock.Object);
         }
 
         private void SetUser(Guid userId)
@@ -32,7 +32,7 @@ namespace MovieBooking.XunitTests.Controllers
             new Claim(ClaimTypes.NameIdentifier, userId.ToString())
         }, "TestAuth"));
 
-            _controller.ControllerContext = new ControllerContext
+            BookingController.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext { User = user }
             };
@@ -41,7 +41,7 @@ namespace MovieBooking.XunitTests.Controllers
         [Fact]
         public async Task GetShowTimes_InvalidDate_ReturnsBadRequest()
         {
-            var result = await _controller.GetShowTimes(Guid.NewGuid(), "invalid-date");
+            var result = await BookingController.GetShowTimes(Guid.NewGuid(), "invalid-date");
 
             var badRequest = Assert.IsType<BadRequestObjectResult>(result);
             Assert.Equal("Invalid date format. Use YYYY-MM-DD", badRequest.Value);
@@ -52,9 +52,9 @@ namespace MovieBooking.XunitTests.Controllers
             var movieId = Guid.NewGuid();
             var date = "2026-02-01";
 
-            await _controller.GetShowTimes(movieId, date);
+            await BookingController.GetShowTimes(movieId, date);
 
-            _serviceMock.Verify(
+            ServiceMock.Verify(
                 s => s.GetShowTimesByMovieAsync(movieId, It.IsAny<DateOnly>()),
                 Times.Once
             );
@@ -68,11 +68,11 @@ namespace MovieBooking.XunitTests.Controllers
             var request = new LockSeatsRequestDto();
             var response = new LockSeatsResponseDto { Success = true };
 
-            _serviceMock
+            ServiceMock
                 .Setup(s => s.LockSeatsAsync(userId, request))
                 .ReturnsAsync(response);
 
-            var result = await _controller.LockSeats(request);
+            var result = await BookingController.LockSeats(request);
 
             Assert.IsType<OkObjectResult>(result);
         }
@@ -85,24 +85,24 @@ namespace MovieBooking.XunitTests.Controllers
             var request = new LockSeatsRequestDto();
             var response = new LockSeatsResponseDto { Success = false };
 
-            _serviceMock
+            ServiceMock
                 .Setup(s => s.LockSeatsAsync(userId, request))
                 .ReturnsAsync(response);
 
-            var result = await _controller.LockSeats(request);
+            var result = await BookingController.LockSeats(request);
 
             Assert.IsType<BadRequestObjectResult>(result);
         }
         [Fact]
         public async Task LockSeats_NoUserClaim_ThrowsException()
         {
-            _controller.ControllerContext = new ControllerContext
+            BookingController.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext()
             };
 
             await Assert.ThrowsAsync<NullReferenceException>(
-                async () => await _controller.LockSeats(new LockSeatsRequestDto())
+                async () => await BookingController.LockSeats(new LockSeatsRequestDto())
             );
         }
     }

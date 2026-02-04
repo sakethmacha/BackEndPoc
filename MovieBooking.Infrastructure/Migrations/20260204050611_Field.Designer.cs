@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieBooking.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using MovieBooking.Infrastructure.Persistence;
 namespace MovieBooking.Infrastructure.Migrations
 {
     [DbContext(typeof(MovieBookingDatabaseContext))]
-    partial class MovieBookingDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260204050611_Field")]
+    partial class Field
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,22 +51,22 @@ namespace MovieBooking.Infrastructure.Migrations
                     b.Property<Guid?>("ReviewedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ScreenId")
+                    b.Property<Guid>("ScreenNameScreenId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("TheatreId")
+                    b.Property<Guid>("TheatreNameTheatreId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("AdminRequestId");
 
                     b.HasIndex("RequestedBy");
 
-                    b.HasIndex("ScreenId");
+                    b.HasIndex("ScreenNameScreenId");
 
-                    b.HasIndex("TheatreId");
+                    b.HasIndex("TheatreNameTheatreId");
 
                     b.ToTable("AdminRequests");
                 });
@@ -584,21 +587,23 @@ namespace MovieBooking.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("MovieBooking.Domain.Entities.Screen", "Screen")
+                    b.HasOne("MovieBooking.Domain.Entities.Screen", "ScreenName")
                         .WithMany()
-                        .HasForeignKey("ScreenId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ScreenNameScreenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("MovieBooking.Domain.Entities.Theatre", "Theatre")
+                    b.HasOne("MovieBooking.Domain.Entities.Theatre", "TheatreName")
                         .WithMany()
-                        .HasForeignKey("TheatreId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("TheatreNameTheatreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("RequestedByUser");
 
-                    b.Navigation("Screen");
+                    b.Navigation("ScreenName");
 
-                    b.Navigation("Theatre");
+                    b.Navigation("TheatreName");
                 });
 
             modelBuilder.Entity("MovieBooking.Domain.Entities.Booking", b =>

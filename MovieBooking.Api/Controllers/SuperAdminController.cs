@@ -247,7 +247,7 @@ namespace MovieBooking.Api.Controllers
                 return BadRequest("Invalid theatre ID");
 
             await SuperAdminService.DeleteTheatreAsync(theatreId);
-            return Ok(new { message = "Theatre deleted successfully" });
+            return RedirectToAction("Theatres");
         }
 
         // ---------- SCREEN DELETE ----------
@@ -258,7 +258,7 @@ namespace MovieBooking.Api.Controllers
                 return BadRequest("Invalid screen ID");
 
             await SuperAdminService.DeleteScreenAsync(screenId);
-            return Ok(new { message = "Screen deleted successfully" });
+            return RedirectToAction("GetScreensByTheatre");
         }
 
         // ---------- SHOWTIME DELETE ----------
@@ -269,7 +269,7 @@ namespace MovieBooking.Api.Controllers
                 return BadRequest("Invalid showtime ID");
 
             await SuperAdminService.DeleteShowTimeAsync(showTimeId);
-            return Ok(new { message = "ShowTime deleted successfully" });
+            return RedirectToAction("ShowTimes");
         }
 
         // ---------- LANGUAGE DELETE ----------

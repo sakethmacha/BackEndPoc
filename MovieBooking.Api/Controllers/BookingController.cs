@@ -11,11 +11,11 @@ namespace MovieBooking.Api.Controllers
     [Authorize(Roles = "User")]
     public class BookingController : ControllerBase
     {
-        private readonly IBookingService _bookingService;
+        private readonly IBookingService BookingService;
 
         public BookingController(IBookingService bookingService)
         {
-            _bookingService = bookingService;
+            BookingService = bookingService;
         }
 
         // ========== BROWSE MOVIES & SHOWS ==========
@@ -27,7 +27,7 @@ namespace MovieBooking.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetActiveMovies()
         {
-            var movies = await _bookingService.GetActiveMoviesAsync();
+            var movies = await BookingService.GetActiveMoviesAsync();
             return Ok(movies);
         }
 
@@ -41,7 +41,7 @@ namespace MovieBooking.Api.Controllers
             if (!DateOnly.TryParse(date, out var parsedDate))
             return BadRequest("Invalid date format. Use YYYY-MM-DD");
 
-            var showTimes = await _bookingService.GetShowTimesByMovieAsync(movieId, parsedDate);
+            var showTimes = await BookingService.GetShowTimesByMovieAsync(movieId, parsedDate);
             return Ok(showTimes);
         }
 
@@ -53,7 +53,7 @@ namespace MovieBooking.Api.Controllers
         [HttpGet("showtimes/{showTimeId}/seats")]
         public async Task<IActionResult> GetSeatLayout(Guid showTimeId)
         {
-            var seatLayout = await _bookingService.GetSeatLayoutAsync(showTimeId);
+            var seatLayout = await BookingService.GetSeatLayoutAsync(showTimeId);
             return Ok(seatLayout);
         }
 
@@ -61,10 +61,10 @@ namespace MovieBooking.Api.Controllers
         /// Lock selected seats temporarily (5 minutes)
         /// </summary>
         [HttpPost("lock-seats")]
-        public async Task<IActionResult> LockSeats([FromBody] LockSeatsRequestDto request)
+        public async Task<IActionResult> LockSeats([FromBody] LockSeatsRequestDto lockSeatsRequestDto)
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var response = await _bookingService.LockSeatsAsync(userId, request);
+            var response = await BookingService.LockSeatsAsync(userId, lockSeatsRequestDto);
 
             if (!response.Success)
                 return BadRequest(response);
@@ -78,10 +78,10 @@ namespace MovieBooking.Api.Controllers
         /// Create a new booking
         /// </summary>
         [HttpPost]
-        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequestDto request)
+        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequestDto createBookingRequestDto)
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var booking = await _bookingService.CreateBookingAsync(userId, request);
+            var booking = await BookingService.CreateBookingAsync(userId, createBookingRequestDto);
             return Ok(booking);
         }
 
@@ -89,7 +89,7 @@ namespace MovieBooking.Api.Controllers
         /// Process payment for a booking
         /// </summary>
         [HttpPost("payment")]
-        public async Task<IActionResult> ProcessPayment([FromBody] ProcessPaymentRequestDto request)
+        public async Task<IActionResult> ProcessPayment([FromBody] ProcessPaymentRequestDto processPaymentRequestDto)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -98,7 +98,7 @@ namespace MovieBooking.Api.Controllers
 
             var userId = Guid.Parse(userIdClaim.Value);
 
-            var payment = await _bookingService.ProcessPaymentAsync(userId, request);
+            var payment = await BookingService.ProcessPaymentAsync(userId, processPaymentRequestDto);
             return Ok(payment);
         }
 
@@ -111,7 +111,7 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetMyBookings()
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var bookings = await _bookingService.GetUserBookingsAsync(userId);
+            var bookings = await BookingService.GetUserBookingsAsync(userId);
             return Ok(bookings);
         }
 
@@ -124,7 +124,7 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetBookingDetails(Guid bookingId)
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var booking = await _bookingService.GetBookingDetailsAsync(userId, bookingId);
+            var booking = await BookingService.GetBookingDetailsAsync(userId, bookingId);
             return Ok(booking);
         }
 
@@ -132,10 +132,10 @@ namespace MovieBooking.Api.Controllers
         /// Cancel a booking
         /// </summary>
         [HttpPost("cancel")]
-        public async Task<IActionResult> CancelBooking([FromBody] CancelBookingRequestDto request)
+        public async Task<IActionResult> CancelBooking([FromBody] CancelBookingRequestDto cancelBookingRequestDto)
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            await _bookingService.CancelBookingAsync(userId, request);
+            await BookingService.CancelBookingAsync(userId, cancelBookingRequestDto);
             return Ok(new { message = "Booking cancelled successfully" });
         }
     }

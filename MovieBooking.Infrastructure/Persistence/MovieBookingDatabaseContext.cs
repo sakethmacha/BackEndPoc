@@ -162,6 +162,23 @@ namespace MovieBooking.Infrastructure.Persistence
                 entity.Property(ar => ar.RequestedAt)
                       .HasDefaultValueSql("GETUTCDATE()");
             });
+            //modelBuilder.Entity<AdminRequest>(entity =>
+            //{
+            //    entity.HasOne(r => r.RequestedByUser)
+            //        .WithMany()
+            //        .HasForeignKey(r => r.RequestedBy)
+            //        .OnDelete(DeleteBehavior.Restrict);
+
+            //    entity.HasOne(r => r.Theatre)
+            //        .WithMany()
+            //        .HasForeignKey(r => r.TheatreId)
+            //        .OnDelete(DeleteBehavior.Restrict);
+
+            //    entity.HasOne(r => r.Screen)
+            //        .WithMany()
+            //        .HasForeignKey(r => r.ScreenId)
+            //        .OnDelete(DeleteBehavior.Restrict);
+            //});
 
             modelBuilder.Entity<Seat>(entity =>
             {

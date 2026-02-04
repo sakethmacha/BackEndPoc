@@ -9,18 +9,18 @@ namespace MovieBooking.Infrastructure.Repositories
 {
     public class BookingRepository : IBookingRepository
     {
-        private readonly MovieBookingDatabaseContext _context;
+        private readonly MovieBookingDatabaseContext DbContext;
 
         public BookingRepository(MovieBookingDatabaseContext context)
         {
-            _context = context;
+            DbContext = context;
         }
 
         // ========== MOVIE & SHOWTIME QUERIES ==========
 
         public async Task<List<Movie>> GetActiveMoviesAsync()
         {
-            return await _context.Movies
+            return await DbContext.Movies
                 .Where(m => m.IsActive)
                 .OrderByDescending(m => m.ReleaseDate)
                 .ToListAsync();
@@ -31,7 +31,7 @@ namespace MovieBooking.Infrastructure.Repositories
             var startOfDay = date.ToDateTime(TimeOnly.MinValue);
             var endOfDay = date.ToDateTime(TimeOnly.MaxValue);
 
-            return await _context.ShowTimes
+            return await DbContext.ShowTimes
                 .Include(st => st.Theatre)
                 .Include(st => st.Screen)
                 .Include(st => st.Language)
@@ -46,7 +46,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<ShowTime> GetShowTimeByIdAsync(Guid showTimeId)
         {
-            var showTime = await _context.ShowTimes
+            var showTime = await DbContext.ShowTimes
                 .Include(st => st.Movie)
                 .Include(st => st.Theatre)
                 .Include(st => st.Screen)
@@ -63,7 +63,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<Seat>> GetSeatsByScreenAsync(Guid screenId)
         {
-            return await _context.Seats
+            return await DbContext.Seats
                 .Where(s => s.ScreenId == screenId && s.IsActive)
                 .OrderBy(s => s.SeatRow)
                 .ThenBy(s => s.SeatColumn)
@@ -72,7 +72,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<BookingSeat>> GetBookedSeatsForShowAsync(Guid showTimeId)
         {
-            return await _context.BookingSeats
+            return await DbContext.BookingSeats
                 .Include(bs => bs.Booking)
                 .Include(bs => bs.Seat)
                 .Where(bs => bs.ShowTimeId == showTimeId
@@ -84,7 +84,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<List<SeatLock>> GetActiveSeatLocksForShowAsync(Guid showTimeId)
         {
             var now = DateTime.UtcNow;
-            return await _context.SeatLocks
+            return await DbContext.SeatLocks
                 .Where(sl => sl.ShowTimeId == showTimeId
                     && sl.Status == SeatLockStatus.LOCKED
                     && sl.ExpiresAt > now)
@@ -109,15 +109,15 @@ namespace MovieBooking.Infrastructure.Repositories
                 Status = SeatLockStatus.LOCKED
             }).ToList();
 
-            _context.SeatLocks.AddRange(locks);
-            await _context.SaveChangesAsync();
+            DbContext.SeatLocks.AddRange(locks);
+            await DbContext.SaveChangesAsync();
 
             return locks;
         }
 
         public async Task ReleaseSeatLocksAsync(List<Guid> seatLockIds)
         {
-            var locks = await _context.SeatLocks
+            var locks = await DbContext.SeatLocks
                 .Where(sl => seatLockIds.Contains(sl.SeatLockId))
                 .ToListAsync();
 
@@ -127,7 +127,7 @@ namespace MovieBooking.Infrastructure.Repositories
             }
             var now = DateTime.UtcNow;
 
-            var expiredBookings = await _context.Bookings
+            var expiredBookings = await DbContext.Bookings
        .Where(b =>
            b.Status == BookingStatus.PENDING &&
            b.CreatedAt.AddMinutes(5) <= now)
@@ -137,13 +137,13 @@ namespace MovieBooking.Infrastructure.Repositories
             {
                 booking.Status = BookingStatus.FAILED;
             }
-            await _context.SaveChangesAsync();
+            await DbContext.SaveChangesAsync();
         }
 
         public async Task ReleaseExpiredLocksAsync()
         {
             var now = DateTime.UtcNow;
-            var expiredLocks = await _context.SeatLocks
+            var expiredLocks = await DbContext.SeatLocks
                 .Where(sl => sl.Status == SeatLockStatus.LOCKED && sl.ExpiresAt <= now)
                 .ToListAsync();
 
@@ -152,7 +152,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 seatlock.Status = SeatLockStatus.EXPIRED;
             }
 
-            await _context.SaveChangesAsync();
+            await DbContext.SaveChangesAsync();
         }
 
         public async Task<bool> AreSeatsAvailableAsync(Guid showTimeId, List<Guid> seatIds)
@@ -160,7 +160,7 @@ namespace MovieBooking.Infrastructure.Repositories
             var now = DateTime.UtcNow;
 
             // Check if seats are already booked
-            var bookedSeats = await _context.BookingSeats
+            var bookedSeats = await DbContext.BookingSeats
                 .Where(bs => bs.ShowTimeId == showTimeId
                     && seatIds.Contains(bs.SeatId)
                     && (bs.Booking.Status == BookingStatus.CONFIRMED
@@ -172,7 +172,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 return false;
 
             // Check if seats are locked by other users
-            var lockedSeats = await _context.SeatLocks
+            var lockedSeats = await DbContext.SeatLocks
                 .Where(sl => sl.ShowTimeId == showTimeId
                     && seatIds.Contains(sl.SeatId)
                     && sl.Status == SeatLockStatus.LOCKED
@@ -187,21 +187,21 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<Booking> CreateBookingAsync(Booking booking)
         {
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
+            DbContext.Bookings.Add(booking);
+            await DbContext.SaveChangesAsync();
             return booking;
         }
 
         public async Task<List<BookingSeat>> CreateBookingSeatsAsync(List<BookingSeat> bookingSeats)
         {
-            _context.BookingSeats.AddRange(bookingSeats);
-            await _context.SaveChangesAsync();
+            DbContext.BookingSeats.AddRange(bookingSeats);
+            await DbContext.SaveChangesAsync();
             return bookingSeats;
         }
 
         public async Task<Booking> GetBookingByIdAsync(Guid bookingId)
         {
-            var booking = await _context.Bookings
+            var booking = await DbContext.Bookings
                 .Include(b => b.ShowTime)
                     .ThenInclude(st => st.Movie)
                 .Include(b => b.ShowTime)
@@ -223,7 +223,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<Booking>> GetUserBookingsAsync(Guid userId)
         {
-            return await _context.Bookings
+            return await DbContext.Bookings
                 .Include(b => b.ShowTime)
                     .ThenInclude(st => st.Movie)
                 .Include(b => b.ShowTime)
@@ -239,22 +239,22 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task UpdateBookingAsync(Booking booking)
         {
-            _context.Bookings.Update(booking);
-            await _context.SaveChangesAsync();
+            DbContext.Bookings.Update(booking);
+            await DbContext.SaveChangesAsync();
         }
 
         // ========== PAYMENT OPERATIONS ==========
 
         public async Task<Payment> CreatePaymentAsync(Payment payment)
         {
-            _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
+            DbContext.Payments.Add(payment);
+            await DbContext.SaveChangesAsync();
             return payment;
         }
 
         public async Task<Payment> GetPaymentByIdAsync(Guid paymentId)
         {
-            var payment = await _context.Payments
+            var payment = await DbContext.Payments
                 .Include(p => p.Booking)
                 .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
 
@@ -266,23 +266,23 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task UpdatePaymentAsync(Payment payment)
         {
-            _context.Payments.Update(payment);
-            await _context.SaveChangesAsync();
+            DbContext.Payments.Update(payment);
+            await DbContext.SaveChangesAsync();
         }
 
         // ========== NOTIFICATION ==========
 
         public async Task AddNotificationLogAsync(NotificationLog log)
         {
-            _context.NotificationLogs.Add(log);
-            await _context.SaveChangesAsync();
+            DbContext.NotificationLogs.Add(log);
+            await DbContext.SaveChangesAsync();
         }
 
         // ========== USER ==========
 
         public async Task<User> GetUserByIdAsync(Guid userId)
         {
-            var user = await _context.Users.FindAsync(userId);
+            var user = await DbContext.Users.FindAsync(userId);
             if (user == null)
                 throw new InvalidOperationException("User not found");
             return user;
@@ -293,7 +293,7 @@ namespace MovieBooking.Infrastructure.Repositories
     Guid showTimeId,
     List<Guid> seatIds)
         {
-            return await _context.BookingSeats
+            return await DbContext.BookingSeats
                 .Where(bs =>
                     bs.ShowTimeId == showTimeId &&
                     seatIds.Contains(bs.SeatId) &&
@@ -304,7 +304,7 @@ namespace MovieBooking.Infrastructure.Repositories
         {
             var now = DateTime.UtcNow;
 
-            return !await _context.SeatLocks
+            return !await DbContext.SeatLocks
                 .AnyAsync(sl =>
                     sl.ShowTimeId == showTimeId
                     && seatIds.Contains(sl.SeatId)
@@ -324,7 +324,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task ConvertLocksToBookingAsync(Guid userId, Guid showTimeId, List<Guid> seatIds)
         {
-            var locks = await _context.SeatLocks
+            var locks = await DbContext.SeatLocks
                 .Where(sl => sl.UserId == userId
                     && sl.ShowTimeId == showTimeId
                     && seatIds.Contains(sl.SeatId)
@@ -337,7 +337,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 seatlock.Status = SeatLockStatus.EXPIRED;
             }
 
-            await _context.SaveChangesAsync();
+            await DbContext.SaveChangesAsync();
         }
 
     }

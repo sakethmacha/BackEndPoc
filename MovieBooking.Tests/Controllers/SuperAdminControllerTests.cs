@@ -9,14 +9,14 @@ namespace MovieBooking.Tests.Controllers
     [TestFixture]
     public class SuperAdminControllerTests
     {
-        private Mock<ISuperAdminService> _serviceMock;
-        private SuperAdminController _controller;
+        private Mock<ISuperAdminService> ServiceMock;
+        private SuperAdminController SuperAdminController;
 
         [SetUp]
         public void Setup()
         {
-            _serviceMock = new Mock<ISuperAdminService>();
-            _controller = new SuperAdminController(_serviceMock.Object);
+            ServiceMock = new Mock<ISuperAdminService>();
+            SuperAdminController = new SuperAdminController(ServiceMock.Object);
         }
 
         //  Returns OkResult
@@ -25,7 +25,7 @@ namespace MovieBooking.Tests.Controllers
         {
             var dto = new AddMovieDto { Title = "Inception" };
 
-            var result = await _controller.AddMovie(dto);
+            var result = await SuperAdminController.AddMovie(dto);
 
             Assert.IsInstanceOf<OkResult>(result);
         }
@@ -36,9 +36,9 @@ namespace MovieBooking.Tests.Controllers
         {
             var dto = new AddMovieDto { Title = "Inception" };
 
-            await _controller.AddMovie(dto);
+            await SuperAdminController.AddMovie(dto);
 
-            _serviceMock.Verify(
+            ServiceMock.Verify(
                 s => s.AddMovieAsync(dto),
                 Times.Once
             );
@@ -50,9 +50,9 @@ namespace MovieBooking.Tests.Controllers
         {
             var dto = new AddMovieDto { Title = "Interstellar" };
 
-            await _controller.AddMovie(dto);
+            await SuperAdminController.AddMovie(dto);
 
-            _serviceMock.Verify(
+            ServiceMock.Verify(
                 s => s.AddMovieAsync(It.Is<AddMovieDto>(
                     d => d.Title == "Interstellar"
                 )),
@@ -64,7 +64,7 @@ namespace MovieBooking.Tests.Controllers
         [Test]
         public async Task AddMovie_NullDto_ReturnsOk()
         {
-            var result = await _controller.AddMovie(null);
+            var result = await SuperAdminController.AddMovie(null);
 
             Assert.IsInstanceOf<OkResult>(result);
         }
@@ -75,12 +75,12 @@ namespace MovieBooking.Tests.Controllers
         {
             var dto = new AddMovieDto();
 
-            _serviceMock
+            ServiceMock
                 .Setup(s => s.AddMovieAsync(dto))
                 .ThrowsAsync(new Exception("DB error"));
 
             Assert.ThrowsAsync<Exception>(
-                async () => await _controller.AddMovie(dto)
+                async () => await SuperAdminController.AddMovie(dto)
             );
         }
     }

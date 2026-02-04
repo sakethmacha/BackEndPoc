@@ -5,18 +5,18 @@ namespace MovieBooking.Application.Services
 {
     public class SeatLockCleanupService : BackgroundService
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IServiceScopeFactory ScopeFactory;
 
         public SeatLockCleanupService(IServiceScopeFactory scopeFactory)
         {
-            _scopeFactory = scopeFactory;
+            ScopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                using var scope = _scopeFactory.CreateScope();
+                using var scope = ScopeFactory.CreateScope();
                 var bookingService =
                     scope.ServiceProvider.GetRequiredService<IBookingService>();
 

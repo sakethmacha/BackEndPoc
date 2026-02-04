@@ -296,6 +296,16 @@ namespace MovieBooking.Application.Services
             var request = await SuperAdminRepository.GetRequestByIdAsync(requestId);
             request.Status = ApprovalStatus.REJECTED;
             request.ReviewedAt = DateTime.UtcNow;
+
+            switch (request.RequestType)
+            {
+                case RequestType.THEATRE:
+                    await SuperAdminRepository.RejectTheatreAsync(request.ReferenceId);
+                    break;
+                case RequestType.SCREEN:
+                    await SuperAdminRepository.RejectScreenAsync(request.ReferenceId);
+                    break;
+            }
             await SuperAdminRepository.UpdateRequestAsync(request);
         }
 
@@ -789,26 +799,34 @@ namespace MovieBooking.Application.Services
                 RequestDetails = GetRequestDetails(r)
             }).ToList();
         }
-        public async Task<List<AdminRequestDto>> GetAllRequestsAsync()
+        public async Task<List<AdminRequestResponseDto>> GetAllRequestsAsync()
         {
             var requests = await SuperAdminRepository.GetAllRequestsAsync();
 
-            return requests.Select(r => new AdminRequestDto
+            return requests.Select(r => new AdminRequestResponseDto
             {
                 AdminRequestId = r.AdminRequestId,
                 RequestType = r.RequestType.ToString(),
                 Status = r.Status.ToString(),
                 RequestedAt = r.RequestedAt,
                 ReviewedAt = r.ReviewedAt,
-                RequestDetails = GetRequestDetails(r)
+                RequestedBy = r.RequestedByUser.Name,
+            //    TheatreName =
+            //r.RequestType == RequestType.THEATRE
+            //    ? r.Theatre?.Name
+            //    : r.Screen?.Theatre?.Name,
+
+            //    // Screen logic
+            //    ScreenName =
+            //r.RequestType == RequestType.SCREEN
+            //    ? r.Screen?.ScreenName
+            //    : null
             }).ToList();
         }
-
         public string GetRequestDetails(AdminRequest request)
         {
             // This would fetch the actual theatre/screen details based on ReferenceId
             return $"{request.RequestType} - Reference ID: {request.ReferenceId}";
         }
-
     }
 }

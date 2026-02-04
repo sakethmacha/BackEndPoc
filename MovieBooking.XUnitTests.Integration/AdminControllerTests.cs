@@ -1,24 +1,22 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using MovieBooking.Api.Controllers;
 using MovieBooking.Application.DTOs.Admin;
 using MovieBooking.Application.Interfaces.Services;
-using MovieBooking.Infrastructure.Repositories;
 using System.Security.Claims;
 
 namespace MovieBooking.XUnitTests.Integration
 {
     public class AdminControllerTests
     {
-        private readonly Mock<IAdminService> _serviceMock;
-        private readonly AdminController _controller;
+        private readonly Mock<IAdminService> ServiceMock;
+        private readonly AdminController AdminController;
 
         public AdminControllerTests()
         {
-            _serviceMock = new Mock<IAdminService>();
-            _controller = new AdminController(_serviceMock.Object);
+            ServiceMock = new Mock<IAdminService>();
+            AdminController = new AdminController(ServiceMock.Object);
 
             SetAdminUser(Guid.NewGuid());
         }
@@ -31,7 +29,7 @@ namespace MovieBooking.XUnitTests.Integration
             new Claim(ClaimTypes.Role, "Admin")
         }, "TestAuth"));
 
-            _controller.ControllerContext = new ControllerContext
+            AdminController.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext { User = user }
             };
@@ -42,11 +40,11 @@ namespace MovieBooking.XUnitTests.Integration
             var dto = new CreateTheatreRequestDto();
             var theatreId = Guid.NewGuid();
 
-            _serviceMock
+            ServiceMock
                 .Setup(s => s.RequestTheatreAsync(dto, It.IsAny<Guid>()))
                 .ReturnsAsync(theatreId);
 
-            var result = await _controller.RequestTheatre(dto);
+            var result = await AdminController.RequestTheatre(dto);
 
             var ok = Assert.IsType<OkObjectResult>(result);
             Assert.Contains("Theatre request submitted successfully",

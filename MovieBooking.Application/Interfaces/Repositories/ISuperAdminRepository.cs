@@ -87,6 +87,10 @@ namespace MovieBooking.Application.Interfaces.Repositories
         Task<List<AdminRequest>> GetAllPendingRequestsAsync();
         Task<List<AdminRequest>> GetAllRequestsAsync();
 
+        Task RejectScreenAsync(Guid screenId);
+        Task RejectTheatreAsync(Guid theatreId);
+
+
     }
 
 

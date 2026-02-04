@@ -62,8 +62,6 @@ namespace MovieBooking.Api
                 });
                         });
 
-            
-
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {

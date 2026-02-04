@@ -9,32 +9,32 @@ namespace MovieBooking.Infrastructure.Repositories
 {
     public class AdminRepository : IAdminRepository
     {
-        private readonly MovieBookingDatabaseContext _db;
+        private readonly MovieBookingDatabaseContext DbContext;
 
         public AdminRepository(MovieBookingDatabaseContext db)
         {
-            _db = db;
+            DbContext = db;
         }
 
         // ========== THEATRE MANAGEMENT ==========
 
         public async Task<Guid> CreateTheatreRequestAsync(Theatre theatre, List<TheatreTimeSlot> timeSlots, AdminRequest request)
         {
-            using var transaction = await _db.Database.BeginTransactionAsync();
+            using var transaction = await DbContext.Database.BeginTransactionAsync();
             try
             {
                 // Add theatre with PENDING status
-                _db.Theatres.Add(theatre);
-                await _db.SaveChangesAsync();
+                DbContext.Theatres.Add(theatre);
+                await DbContext.SaveChangesAsync();
 
                 // Add time slots
-                _db.TheatreTimeSlots.AddRange(timeSlots);
-                await _db.SaveChangesAsync();
+                DbContext.TheatreTimeSlots.AddRange(timeSlots);
+                await DbContext.SaveChangesAsync();
 
                 // Create approval request
                 request.ReferenceId = theatre.TheatreId;
-                _db.AdminRequests.Add(request);
-                await _db.SaveChangesAsync();
+                DbContext.AdminRequests.Add(request);
+                await DbContext.SaveChangesAsync();
 
                 await transaction.CommitAsync();
                 return theatre.TheatreId;
@@ -48,7 +48,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<Theatre>> GetTheatresByAdminAsync(Guid adminId)
         {
-            return await _db.Theatres
+            return await DbContext.Theatres
                 .Include(t => t.TimeSlots)
                 .Where(t => t.CreatedBy == adminId)
                 .OrderByDescending(t => t.CreatedAt)
@@ -57,7 +57,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<Theatre> GetTheatreByIdAsync(Guid theatreId)
         {
-            var theatre = await _db.Theatres
+            var theatre = await DbContext.Theatres
                 .Include(t => t.TimeSlots)
                 .FirstOrDefaultAsync(t => t.TheatreId == theatreId);
 
@@ -71,21 +71,21 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<Guid> CreateScreenRequestAsync(Screen screen, List<Seat> seats, AdminRequest request)
         {
-            using var transaction = await _db.Database.BeginTransactionAsync();
+            using var transaction = await DbContext.Database.BeginTransactionAsync();
             try
             {
                 // Add screen with PENDING status
-                _db.Screens.Add(screen);
-                await _db.SaveChangesAsync();
+                DbContext.Screens.Add(screen);
+                await DbContext.SaveChangesAsync();
 
                 // Add seats
-                _db.Seats.AddRange(seats);
-                await _db.SaveChangesAsync();
+                DbContext.Seats.AddRange(seats);
+                await DbContext.SaveChangesAsync();
 
                 // Create approval request
                 request.ReferenceId = screen.ScreenId;
-                _db.AdminRequests.Add(request);
-                await _db.SaveChangesAsync();
+                DbContext.AdminRequests.Add(request);
+                await DbContext.SaveChangesAsync();
 
                 await transaction.CommitAsync();
                 return screen.ScreenId;
@@ -99,7 +99,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<Screen>> GetScreensByAdminAsync(Guid adminId)
         {
-            return await _db.Screens
+            return await DbContext.Screens
                 .Include(s => s.Theatre)
                 .Include(s => s.Seats)
                 .Where(s => s.Theatre.CreatedBy == adminId)
@@ -110,7 +110,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<Screen> GetScreenByIdAsync(Guid screenId)
         {
-            var screen = await _db.Screens
+            var screen = await DbContext.Screens
                 .Include(s => s.Theatre)
                 .Include(s => s.Seats)
                 .FirstOrDefaultAsync(s => s.ScreenId == screenId);
@@ -125,7 +125,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<AdminRequest>> GetRequestsByAdminAsync(Guid adminId)
         {
-            return await _db.AdminRequests
+            return await DbContext.AdminRequests
                 .Where(r => r.RequestedBy == adminId)
                 .OrderByDescending(r => r.RequestedAt)
                 .ToListAsync();
@@ -133,7 +133,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<AdminRequest> GetRequestByIdAsync(Guid requestId)
         {
-            var request = await _db.AdminRequests.FindAsync(requestId);
+            var request = await DbContext.AdminRequests.FindAsync(requestId);
             if (request == null)
                 throw new InvalidOperationException("Request not found");
 
