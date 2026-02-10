@@ -30,9 +30,7 @@ namespace MovieBooking.Api.FastEndPoints
             });
         }
 
-        public override async Task HandleAsync(
-            CancelBookingRequestDto request,
-            CancellationToken ct)
+        public override async Task HandleAsync(CancelBookingRequestDto request, CancellationToken ct)
         {
             var userId = Guid.Parse(
                 User.FindFirst(ClaimTypes.NameIdentifier)!.Value);

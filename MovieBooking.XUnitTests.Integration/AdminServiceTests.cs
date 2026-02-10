@@ -1,5 +1,4 @@
 ﻿using Moq;
-using MovieBooking.Api;
 using MovieBooking.Application.DTOs.Admin;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Services;
