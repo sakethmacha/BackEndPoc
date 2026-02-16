@@ -88,7 +88,6 @@ namespace MovieBooking.Api.Controllers
             return Ok("Screen added successfully");
         }
 
-
         
         [HttpGet("screens")]
         public async Task<IActionResult> GetScreens()
