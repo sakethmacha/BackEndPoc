@@ -11,9 +11,9 @@ namespace MovieBooking.Infrastructure.Repositories
     {
         private readonly MovieBookingDatabaseContext DbContext;
 
-        public BookingRepository(MovieBookingDatabaseContext context)
+        public BookingRepository(MovieBookingDatabaseContext dbContext)
         {
-            DbContext = context;
+            DbContext = dbContext;
         }
 
         // ========== MOVIE & SHOWTIME QUERIES ==========

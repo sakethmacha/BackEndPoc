@@ -11,9 +11,9 @@ namespace MovieBooking.Infrastructure.Repositories
     {
         private readonly MovieBookingDatabaseContext DbContext;
 
-        public AdminRepository(MovieBookingDatabaseContext db)
+        public AdminRepository(MovieBookingDatabaseContext dbContext)
         {
-            DbContext = db;
+            DbContext = dbContext;
         }
 
         // ========== THEATRE MANAGEMENT ==========

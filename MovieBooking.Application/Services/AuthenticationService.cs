@@ -16,11 +16,11 @@ namespace MovieBooking.Application.Services
         private readonly IConfiguration Configuration;
 
         public AuthenticationService(
-            IUserRepository UserRepository,
-            IConfiguration Configuration)
+            IUserRepository userRepository,
+            IConfiguration configuration)
         {
-            this.UserRepository = UserRepository;
-            this.Configuration = Configuration;
+            this.UserRepository = userRepository;
+            this.Configuration = configuration;
         }
 
         public async Task<AuthenticationResponseDto> RegisterAsync(RegisterRequestDto registerRequestDto)

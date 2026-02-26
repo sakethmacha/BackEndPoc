@@ -118,7 +118,7 @@ namespace MovieBooking.Application.Services
                         "Theatre show timings cannot overlap");
             }
 
-            // 3️⃣ Create theatre
+            // 3️ Create theatre
             var theatre = new Theatre
             {
                 TheatreId = Guid.NewGuid(),
@@ -130,7 +130,7 @@ namespace MovieBooking.Application.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            // 4️⃣ Create TheatreTimeSlot entities
+            // 4️ Create TheatreTimeSlot entities
             var timeSlots = parsedSlots.Select(p => new TheatreTimeSlot
             {
                 TheatreTimeSlotId = Guid.NewGuid(),
@@ -140,7 +140,7 @@ namespace MovieBooking.Application.Services
                 IsActive = true
             }).ToList();
 
-            // 5️⃣ Persist
+            // 5️ Persist
             await SuperAdminRepository.AddTheatreWithTimeSlotsAsync(theatre, timeSlots);
         }
 
@@ -151,7 +151,7 @@ namespace MovieBooking.Application.Services
             if (createScreenRequest.SeatRows == null || !createScreenRequest.SeatRows.Any())
                 throw new InvalidOperationException("Seat layout is required");
 
-            // ✅ parse SeatLayoutType (string → enum)
+            //  parse SeatLayoutType (string → enum)
             if (!Enum.TryParse<SeatLayoutType>(
                     createScreenRequest.SeatLayoutType, true, out var layoutType))
                 throw new InvalidOperationException("Invalid seat layout type");
@@ -160,7 +160,7 @@ namespace MovieBooking.Application.Services
 
             foreach (var row in createScreenRequest.SeatRows)
             {
-                // ✅ parse SeatType (string → enum)
+                //  parse SeatType (string → enum)
                 if (!Enum.TryParse<SeatType>(
                         row.SeatType, true, out var seatType))
                     throw new InvalidOperationException(
@@ -231,7 +231,7 @@ namespace MovieBooking.Application.Services
 
         public async Task AddShowTimeAsync(CreateShowTimeDto createShowTimeDto)
         {
-            // 1️⃣ Get theatre timings
+            // 1️ Get theatre timings
             var slots = await SuperAdminRepository.GetTimeSlotsByTheatreAsync(createShowTimeDto.TheatreId);
 
             if (!slots.Any())
@@ -267,7 +267,7 @@ namespace MovieBooking.Application.Services
                 });
             }
 
-            // 3️⃣ Persist
+            // 3️ Persist
             await SuperAdminRepository.AddShowTimesAsync(showTimes);
         }
 

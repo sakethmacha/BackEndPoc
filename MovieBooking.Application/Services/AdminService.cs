@@ -10,9 +10,9 @@ namespace MovieBooking.Application.Services
     {
         private readonly IAdminRepository AdminRepository;
 
-        public AdminService(IAdminRepository repo)
+        public AdminService(IAdminRepository adminRepository)
         {
-            AdminRepository = repo;
+            AdminRepository = adminRepository;
         }
 
         // ========== THEATRE REQUESTS ==========
