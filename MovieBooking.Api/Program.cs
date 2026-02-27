@@ -95,24 +95,24 @@ namespace MovieBooking.Api
                     };
                 });
 
-            builder.Services.AddAuthorization(); //  REQUIRED
+            builder.Services.AddAuthorization();
 
 
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
             builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
-            //
-            // Add these lines in your service registration
+            
+            
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<IAdminRepository, AdminRepository>();
-            //
+            
             builder.Services.AddHostedService<SeatLockCleanupService>();
 
-            // Repository
+           
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
-            // Service
+            
             builder.Services.AddScoped<IBookingService, BookingService>();
             var app = builder.Build();
            
