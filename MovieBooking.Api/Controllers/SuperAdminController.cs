@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
-using MovieBooking.Application.Services;
 using System.Security.Claims;
 
 namespace MovieBooking.Api.Controllers

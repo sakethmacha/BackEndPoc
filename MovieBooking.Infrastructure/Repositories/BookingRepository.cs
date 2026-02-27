@@ -310,10 +310,10 @@ namespace MovieBooking.Infrastructure.Repositories
                     && seatIds.Contains(sl.SeatId)
                     &&
                     (
-                        // ❌ Seat already booked (final)
+                        //  Seat already booked (final)
                         sl.Status == SeatLockStatus.BOOKED
 
-                        // ❌ Seat locked by another user and not expired
+                        //  Seat locked by another user and not expired
                         || (sl.Status == SeatLockStatus.LOCKED
                             && sl.UserId != userId
                             && sl.ExpiresAt > now)
@@ -339,6 +339,5 @@ namespace MovieBooking.Infrastructure.Repositories
 
             await DbContext.SaveChangesAsync();
         }
-
     }
 }

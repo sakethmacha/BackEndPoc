@@ -140,7 +140,7 @@ namespace MovieBooking.Application.Services
                 IsActive = true
             }).ToList();
 
-            // 5️⃣ Persist
+            // Persist
             await SuperAdminRepository.AddTheatreWithTimeSlotsAsync(theatre, timeSlots);
         }
 
@@ -151,7 +151,7 @@ namespace MovieBooking.Application.Services
             if (createScreenRequest.SeatRows == null || !createScreenRequest.SeatRows.Any())
                 throw new InvalidOperationException("Seat layout is required");
 
-            // ✅ parse SeatLayoutType (string → enum)
+            //  parse SeatLayoutType (string → enum)
             if (!Enum.TryParse<SeatLayoutType>(
                     createScreenRequest.SeatLayoutType, true, out var layoutType))
                 throw new InvalidOperationException("Invalid seat layout type");
@@ -160,7 +160,7 @@ namespace MovieBooking.Application.Services
 
             foreach (var row in createScreenRequest.SeatRows)
             {
-                // ✅ parse SeatType (string → enum)
+                // arse SeatType (string → enum)
                 if (!Enum.TryParse<SeatType>(
                         row.SeatType, true, out var seatType))
                     throw new InvalidOperationException(
@@ -345,7 +345,10 @@ namespace MovieBooking.Application.Services
                 IsActive = t.IsActive
             }).ToList();
         }
-        // ---------- SCREENS ----------
+       /// <summary>
+       /// It will get the screens
+       /// </summary>
+       /// <returns></returns>
         public async Task<List<ScreenResponseDto>> GetScreensAsync()
         {
             var screens = await SuperAdminRepository.GetScreensAsync();

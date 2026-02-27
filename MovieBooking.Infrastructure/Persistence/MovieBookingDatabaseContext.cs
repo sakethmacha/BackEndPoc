@@ -309,7 +309,7 @@ namespace MovieBooking.Infrastructure.Persistence
                       .HasForeignKey(sl => sl.UserId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // ✅ Composite UNIQUE filtered index (only ACTIVE locks)
+                //  Composite UNIQUE filtered index (only ACTIVE locks)
                 entity.HasIndex(sl => new { sl.ShowTimeId, sl.SeatId })
                       .IsUnique()
                       .HasFilter("[Status] = 0"); // ACTIVE / LOCKED only
