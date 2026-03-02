@@ -7,43 +7,22 @@ namespace MovieBooking.Application.Interfaces.Services
     /// </summary>
     public interface IScreenService
     {
-        /// <summary>
-        /// Retrieves all screens
-        /// </summary>
-        /// <returns>List of screens</returns>
+        /// <summary>Retrieves all active screens</summary>
         Task<List<ScreenResponseDto>> GetScreensAsync();
 
-        /// <summary>
-        /// Retrieves a specific screen by ID
-        /// </summary>
-        /// <param name="screenId">Screen identifier</param>
-        /// <returns>Screen details with seat layout</returns>
+        /// <summary>Retrieves a screen by ID with seat layout</summary>
         Task<CreateScreenRequest> GetScreenByIdAsync(Guid screenId);
 
-        /// <summary>
-        /// Retrieves all screens for a specific theatre
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
-        /// <returns>List of screens for the theatre</returns>
+        /// <summary>Retrieves screens by theatre ID</summary>
         Task<List<ScreenResponseDto>> GetScreensByTheatreAsync(Guid theatreId);
 
-        /// <summary>
-        /// Adds a new screen
-        /// </summary>
-        /// <param name="createScreenRequest">Screen data with seat configuration</param>
+        /// <summary>Adds a new screen with seats</summary>
         Task AddScreenAsync(CreateScreenRequest createScreenRequest);
 
-        /// <summary>
-        /// Updates an existing screen
-        /// </summary>
-        /// <param name="screenId">Screen identifier</param>
-        /// <param name="updateScreenDto">Updated screen data</param>
+        /// <summary>Updates an existing screen</summary>
         Task UpdateScreenAsync(Guid screenId, UpdateScreenDto updateScreenDto);
 
-        /// <summary>
-        /// Deletes a screen
-        /// </summary>
-        /// <param name="screenId">Screen identifier</param>
+        /// <summary>Deletes a screen (soft delete)</summary>
         Task DeleteScreenAsync(Guid screenId);
     }
 }

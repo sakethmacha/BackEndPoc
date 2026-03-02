@@ -7,36 +7,19 @@ namespace MovieBooking.Application.Interfaces.Services
     /// </summary>
     public interface IShowTimeService
     {
-        /// <summary>
-        /// Retrieves all showtimes
-        /// </summary>
-        /// <returns>List of showtimes</returns>
+        /// <summary>Retrieves all active showtimes</summary>
         Task<List<ShowTimeResponseDto>> GetShowTimesAsync();
 
-        /// <summary>
-        /// Retrieves a specific showtime by ID
-        /// </summary>
-        /// <param name="showTimeId">ShowTime identifier</param>
-        /// <returns>ShowTime details</returns>
+        /// <summary>Retrieves a showtime by ID</summary>
         Task<ShowTimeResponseDto> GetShowTimeByIdAsync(Guid showTimeId);
 
-        /// <summary>
-        /// Adds a new showtime
-        /// </summary>
-        /// <param name="createShowTimeDto">ShowTime data</param>
+        /// <summary>Adds new showtimes for all theatre time slots</summary>
         Task AddShowTimeAsync(CreateShowTimeDto createShowTimeDto);
 
-        /// <summary>
-        /// Updates an existing showtime
-        /// </summary>
-        /// <param name="showTimeId">ShowTime identifier</param>
-        /// <param name="updateShowTimeDto">Updated showtime data</param>
+        /// <summary>Updates an existing showtime</summary>
         Task UpdateShowTimeAsync(Guid showTimeId, UpdateShowTimeDto updateShowTimeDto);
 
-        /// <summary>
-        /// Deletes a showtime
-        /// </summary>
-        /// <param name="showTimeId">ShowTime identifier</param>
+        /// <summary>Deletes a showtime (soft delete)</summary>
         Task DeleteShowTimeAsync(Guid showTimeId);
     }
 }

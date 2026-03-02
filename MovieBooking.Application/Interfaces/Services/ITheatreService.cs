@@ -7,37 +7,19 @@ namespace MovieBooking.Application.Interfaces.Services
     /// </summary>
     public interface ITheatreService
     {
-        /// <summary>
-        /// Retrieves all theatres
-        /// </summary>
-        /// <returns>List of theatres</returns>
+        /// <summary>Retrieves all active theatres</summary>
         Task<List<TheatreResponseDto>> GetTheatresAsync();
 
-        /// <summary>
-        /// Retrieves a specific theatre by ID
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
-        /// <returns>Theatre details with time slots</returns>
+        /// <summary>Retrieves a theatre by ID with time slots</summary>
         Task<TheatreResponseDto> GetTheatreByIdAsync(Guid theatreId);
 
-        /// <summary>
-        /// Adds a new theatre
-        /// </summary>
-        /// <param name="createTheatreDto">Theatre data</param>
-        /// <param name="superAdminId">ID of the super admin creating the theatre</param>
+        /// <summary>Adds a new theatre with time slots</summary>
         Task AddTheatreAsync(CreateTheatreDto createTheatreDto, Guid superAdminId);
 
-        /// <summary>
-        /// Updates an existing theatre
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
-        /// <param name="updateTheatreDto">Updated theatre data</param>
+        /// <summary>Updates an existing theatre</summary>
         Task UpdateTheatreAsync(Guid theatreId, UpdateTheatreDto updateTheatreDto);
 
-        /// <summary>
-        /// Deletes a theatre
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
+        /// <summary>Deletes a theatre (soft delete)</summary>
         Task DeleteTheatreAsync(Guid theatreId);
     }
 }

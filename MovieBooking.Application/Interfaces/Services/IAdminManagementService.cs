@@ -7,36 +7,22 @@ namespace MovieBooking.Application.Interfaces.Services
     /// </summary>
     public interface IAdminManagementService
     {
-        /// <summary>
-        /// Retrieves all admin users
-        /// </summary>
-        /// <returns>List of admin users</returns>
+        /// <summary>Retrieves all admin users</summary>
         Task<List<AdminDto>> GetAdminsAsync();
 
-        /// <summary>
-        /// Retrieves a specific admin by ID
-        /// </summary>
-        /// <param name="adminId">Admin identifier</param>
-        /// <returns>Admin details</returns>
+        /// <summary>Retrieves an admin by ID</summary>
         Task<AdminDto> GetAdminByIdAsync(Guid adminId);
 
-        /// <summary>
-        /// Creates a new admin user
-        /// </summary>
-        /// <param name="createAdminDto">Admin creation data</param>
+        /// <summary>Creates a new admin user</summary>
         Task CreateAdminAsync(CreateAdminDto createAdminDto);
 
-        /// <summary>
-        /// Updates an existing admin user
-        /// </summary>
-        /// <param name="adminId">Admin identifier</param>
-        /// <param name="updateAdminDto">Updated admin data</param>
+        /// <summary>Toggles admin active status</summary>
+        Task ToggleAdminAsync(Guid adminId);
+
+        /// <summary>Updates an existing admin</summary>
         Task UpdateAdminAsync(Guid adminId, UpdateAdminDto updateAdminDto);
 
-        /// <summary>
-        /// Deletes an admin user
-        /// </summary>
-        /// <param name="adminId">Admin identifier</param>
+        /// <summary>Deletes an admin (soft delete)</summary>
         Task DeleteAdminAsync(Guid adminId);
     }
 }

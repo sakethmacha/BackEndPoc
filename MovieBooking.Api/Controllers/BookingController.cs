@@ -18,7 +18,6 @@ namespace MovieBooking.Api.Controllers
             BookingService = bookingService;
         }
 
-        // ========== BROWSE MOVIES & SHOWS ==========
 
         /// <summary>
         /// Get all active movies
@@ -45,8 +44,6 @@ namespace MovieBooking.Api.Controllers
             return Ok(showTimes);
         }
 
-        // ========== SEAT SELECTION ==========
-
         /// <summary>
         /// Get seat layout for a showtime
         /// </summary>
@@ -72,8 +69,7 @@ namespace MovieBooking.Api.Controllers
             return Ok(response);
         }
 
-        // ========== BOOKING & PAYMENT ==========
-
+        
         /// <summary>
         /// Create a new booking
         /// </summary>
@@ -102,8 +98,7 @@ namespace MovieBooking.Api.Controllers
             return Ok(payment);
         }
 
-        // ========== USER BOOKINGS ==========
-
+     
         /// <summary>
         /// Get all bookings for the current user
         /// </summary>

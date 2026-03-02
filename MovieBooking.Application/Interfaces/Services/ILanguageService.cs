@@ -7,36 +7,19 @@ namespace MovieBooking.Application.Interfaces.Services
     /// </summary>
     public interface ILanguageService
     {
-        /// <summary>
-        /// Retrieves all languages
-        /// </summary>
-        /// <returns>List of languages</returns>
+        /// <summary>Retrieves all languages</summary>
         Task<List<LanguageDto>> GetLanguagesAsync();
 
-        /// <summary>
-        /// Retrieves a specific language by ID
-        /// </summary>
-        /// <param name="languageId">Language identifier</param>
-        /// <returns>Language details</returns>
+        /// <summary>Retrieves a language by ID</summary>
         Task<LanguageDto> GetLanguageByIdAsync(Guid languageId);
 
-        /// <summary>
-        /// Adds a new language
-        /// </summary>
-        /// <param name="createLanguageDto">Language data</param>
+        /// <summary>Adds a new language</summary>
         Task AddLanguageAsync(CreateLanguageDto createLanguageDto);
 
-        /// <summary>
-        /// Updates an existing language
-        /// </summary>
-        /// <param name="languageId">Language identifier</param>
-        /// <param name="updateLanguageDto">Updated language data</param>
+        /// <summary>Updates an existing language</summary>
         Task UpdateLanguageAsync(Guid languageId, UpdateLanguageDto updateLanguageDto);
 
-        /// <summary>
-        /// Deletes a language
-        /// </summary>
-        /// <param name="languageId">Language identifier</param>
+        /// <summary>Deletes a language</summary>
         Task DeleteLanguageAsync(Guid languageId);
     }
 }

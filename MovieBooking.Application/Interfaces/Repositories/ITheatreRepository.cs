@@ -7,56 +7,37 @@ namespace MovieBooking.Application.Interfaces.Repositories
     /// </summary>
     public interface ITheatreRepository
     {
-        /// <summary>
-        /// Retrieves all active theatres
-        /// </summary>
-        /// <returns>List of theatres</returns>
-        Task<List<Theatre>> GetAllTheatresAsync();
+        /// <summary>Retrieves all active theatres</summary>
+        Task<List<Theatre>> GetTheatresAsync();
 
-        /// <summary>
-        /// Retrieves a theatre by ID with time slots
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
-        /// <returns>Theatre entity with time slots</returns>
+        /// <summary>Retrieves a theatre by ID with time slots</summary>
         Task<Theatre> GetTheatreByIdAsync(Guid theatreId);
 
-        /// <summary>
-        /// Adds a new theatre with time slots
-        /// </summary>
-        /// <param name="theatre">Theatre entity</param>
-        /// <param name="timeSlots">List of time slots</param>
+        /// <summary>Adds a theatre with its time slots</summary>
         Task AddTheatreWithTimeSlotsAsync(Theatre theatre, List<TheatreTimeSlot> timeSlots);
 
-        /// <summary>
-        /// Updates an existing theatre
-        /// </summary>
-        /// <param name="theatre">Theatre entity</param>
+        /// <summary>Updates an existing theatre</summary>
         Task UpdateTheatreAsync(Theatre theatre);
 
-        /// <summary>
-        /// Deletes a theatre (soft delete by setting IsActive = false)
-        /// </summary>
-        /// <param name="theatre">Theatre entity</param>
+        /// <summary>Soft deletes a theatre</summary>
         Task DeleteTheatreAsync(Theatre theatre);
 
-        /// <summary>
-        /// Retrieves time slots for a theatre
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
-        /// <returns>List of time slots</returns>
+        /// <summary>Retrieves time slots for a theatre</summary>
         Task<List<TheatreTimeSlot>> GetTimeSlotsByTheatreAsync(Guid theatreId);
 
-        /// <summary>
-        /// Deletes all time slots for a theatre
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
+        /// <summary>Retrieves all time slots for a theatre</summary>
+        Task<List<TheatreTimeSlot>> GetTheatreTimeSlotsAsync(Guid theatreId);
+
+        /// <summary>Deletes all time slots for a theatre</summary>
         Task DeleteTheatreTimeSlotsAsync(Guid theatreId);
 
-        /// <summary>
-        /// Checks if a theatre has active screens
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
-        /// <returns>True if theatre has active screens</returns>
+        /// <summary>Checks if theatre has active screens</summary>
         Task<bool> TheatreHasActiveScreensAsync(Guid theatreId);
+
+        /// <summary>Approves a theatre</summary>
+        Task ApproveTheatreAsync(Guid theatreId);
+
+        /// <summary>Rejects a theatre</summary>
+        Task RejectTheatreAsync(Guid theatreId);
     }
 }

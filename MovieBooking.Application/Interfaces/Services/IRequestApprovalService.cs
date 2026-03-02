@@ -8,28 +8,16 @@ namespace MovieBooking.Application.Interfaces.Services
     /// </summary>
     public interface IRequestApprovalService
     {
-        /// <summary>
-        /// Retrieves all admin requests
-        /// </summary>
-        /// <returns>List of all requests</returns>
+        /// <summary>Retrieves all admin requests</summary>
         Task<List<AdminRequestResponseDto>> GetAllRequestsAsync();
 
-        /// <summary>
-        /// Retrieves only pending admin requests
-        /// </summary>
-        /// <returns>List of pending requests</returns>
-        Task<List<AdminRequestDto>> GetPendingRequestsAsync();
+        /// <summary>Retrieves all pending admin requests</summary>
+        Task<List<AdminRequestDto>> GetAllPendingRequestsAsync();
 
-        /// <summary>
-        /// Approves an admin request
-        /// </summary>
-        /// <param name="requestId">Request identifier</param>
+        /// <summary>Approves an admin request</summary>
         Task ApproveRequestAsync(Guid requestId);
 
-        /// <summary>
-        /// Rejects an admin request
-        /// </summary>
-        /// <param name="requestId">Request identifier</param>
+        /// <summary>Rejects an admin request</summary>
         Task RejectRequestAsync(Guid requestId);
     }
 }

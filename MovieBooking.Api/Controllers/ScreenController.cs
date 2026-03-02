@@ -9,33 +9,25 @@ namespace MovieBooking.Api.Controllers
     /// Controller for managing screen operations
     /// </summary>
     [ApiController]
-    [Route("api/superadmin/screens")]
+    [Route("api/screen")]
     [Authorize(Roles = "SuperAdmin")]
     public class ScreenController : ControllerBase
     {
-        private readonly IScreenService _screenService;
+        private readonly IScreenService ScreenService;
 
-        /// <summary>
-        /// Initializes a new instance of the ScreenController
-        /// </summary>
-        /// <param name="screenService">Screen service instance</param>
+        /// <summary>Initializes a new instance of ScreenController</summary>
         public ScreenController(IScreenService screenService)
         {
-            _screenService = screenService;
+            ScreenService = screenService;
         }
 
-        /// <summary>
-        /// Retrieves all screens
-        /// </summary>
-        /// <returns>List of screens</returns>
+        /// <summary>Retrieves all active screens</summary>
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetScreens()
         {
             try
             {
-                var screens = await _screenService.GetScreensAsync();
+                var screens = await ScreenService.GetScreensAsync();
                 return Ok(screens);
             }
             catch (Exception ex)
@@ -44,23 +36,15 @@ namespace MovieBooking.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Retrieves a specific screen by ID
-        /// </summary>
-        /// <param name="screenId">Screen identifier</param>
-        /// <returns>Screen details</returns>
+        /// <summary>Retrieves a screen by ID with seat layout</summary>
         [HttpGet("{screenId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetScreenById(Guid screenId)
         {
             if (screenId == Guid.Empty)
                 return BadRequest(new { message = "Invalid screen ID" });
-
             try
             {
-                var screen = await _screenService.GetScreenByIdAsync(screenId);
+                var screen = await ScreenService.GetScreenByIdAsync(screenId);
                 return Ok(screen);
             }
             catch (InvalidOperationException ex)
@@ -73,22 +57,15 @@ namespace MovieBooking.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Retrieves all screens for a specific theatre
-        /// </summary>
-        /// <param name="theatreId">Theatre identifier</param>
-        /// <returns>List of screens for the theatre</returns>
+        /// <summary>Retrieves screens by theatre ID</summary>
         [HttpGet("by-theatre/{theatreId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetScreensByTheatre(Guid theatreId)
         {
             if (theatreId == Guid.Empty)
                 return BadRequest(new { message = "Invalid theatre ID" });
-
             try
             {
-                var screens = await _screenService.GetScreensByTheatreAsync(theatreId);
+                var screens = await ScreenService.GetScreensByTheatreAsync(theatreId);
                 return Ok(screens);
             }
             catch (Exception ex)
@@ -97,22 +74,15 @@ namespace MovieBooking.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Creates a new screen
-        /// </summary>
-        /// <param name="createScreenRequest">Screen creation data</param>
-        /// <returns>Success message</returns>
+        /// <summary>Adds a new screen with seats</summary>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddScreen(CreateScreenRequest createScreenRequest)
         {
             if (createScreenRequest == null)
                 return BadRequest(new { message = "Invalid request" });
-
             try
             {
-                await _screenService.AddScreenAsync(createScreenRequest);
+                await ScreenService.AddScreenAsync(createScreenRequest);
                 return Ok(new { message = "Screen added successfully" });
             }
             catch (InvalidOperationException ex)
@@ -125,24 +95,15 @@ namespace MovieBooking.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Updates an existing screen
-        /// </summary>
-        /// <param name="screenId">Screen identifier</param>
-        /// <param name="updateScreenDto">Screen update data</param>
-        /// <returns>Success message</returns>
+        /// <summary>Updates an existing screen</summary>
         [HttpPut("{screenId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateScreen(Guid screenId, [FromBody] UpdateScreenDto updateScreenDto)
         {
             if (screenId == Guid.Empty)
                 return BadRequest(new { message = "Invalid screen ID" });
-
             try
             {
-                await _screenService.UpdateScreenAsync(screenId, updateScreenDto);
+                await ScreenService.UpdateScreenAsync(screenId, updateScreenDto);
                 return Ok(new { message = "Screen updated successfully" });
             }
             catch (InvalidOperationException ex)
@@ -155,22 +116,15 @@ namespace MovieBooking.Api.Controllers
             }
         }
 
-        /// <summary>
-        /// Deletes a screen
-        /// </summary>
-        /// <param name="screenId">Screen identifier</param>
-        /// <returns>Success message</returns>
+        /// <summary>Deletes a screen</summary>
         [HttpDelete("{screenId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteScreen(Guid screenId)
         {
             if (screenId == Guid.Empty)
                 return BadRequest(new { message = "Invalid screen ID" });
-
             try
             {
-                await _screenService.DeleteScreenAsync(screenId);
+                await ScreenService.DeleteScreenAsync(screenId);
                 return Ok(new { message = "Screen deleted successfully" });
             }
             catch (InvalidOperationException ex)
