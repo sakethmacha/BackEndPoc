@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 
 namespace MovieBooking.Api.Controllers
 {
@@ -31,7 +32,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving requests", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingRequests,
+                    error = ex.Message
+                });
             }
         }
 
@@ -46,7 +51,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving pending requests", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingPendingRequests,
+                    error = ex.Message
+                });
             }
         }
 
@@ -55,11 +64,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> ApproveRequest(Guid requestId)
         {
             if (requestId == Guid.Empty)
-                return BadRequest(new { message = "Invalid request ID" });
+                return BadRequest(new { message = MessageStrings.InvalidRequestId });
+
             try
             {
                 await RequestApprovalService.ApproveRequestAsync(requestId);
-                return Ok(new { message = "Request approved successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.RequestApprovedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -67,7 +81,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while approving the request", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorApprovingRequest,
+                    error = ex.Message
+                });
             }
         }
 
@@ -76,11 +94,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> RejectRequest(Guid requestId)
         {
             if (requestId == Guid.Empty)
-                return BadRequest(new { message = "Invalid request ID" });
+                return BadRequest(new { message = MessageStrings.InvalidRequestId });
+
             try
             {
                 await RequestApprovalService.RejectRequestAsync(requestId);
-                return Ok(new { message = "Request rejected successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.RequestRejectedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -88,7 +111,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while rejecting the request", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRejectingRequest,
+                    error = ex.Message
+                });
             }
         }
     }

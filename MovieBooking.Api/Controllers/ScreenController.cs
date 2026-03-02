@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 
 namespace MovieBooking.Api.Controllers
 {
@@ -32,7 +33,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving screens", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingScreens,
+                    error = ex.Message
+                });
             }
         }
 
@@ -41,7 +46,8 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetScreenById(Guid screenId)
         {
             if (screenId == Guid.Empty)
-                return BadRequest(new { message = "Invalid screen ID" });
+                return BadRequest(new { message = MessageStrings.InvalidScreenId });
+
             try
             {
                 var screen = await ScreenService.GetScreenByIdAsync(screenId);
@@ -53,7 +59,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving the screen", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingScreen,
+                    error = ex.Message
+                });
             }
         }
 
@@ -62,7 +72,8 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetScreensByTheatre(Guid theatreId)
         {
             if (theatreId == Guid.Empty)
-                return BadRequest(new { message = "Invalid theatre ID" });
+                return BadRequest(new { message = MessageStrings.InvalidTheatreId });
+
             try
             {
                 var screens = await ScreenService.GetScreensByTheatreAsync(theatreId);
@@ -70,7 +81,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving screens", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingScreens,
+                    error = ex.Message
+                });
             }
         }
 
@@ -79,11 +94,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> AddScreen(CreateScreenRequest createScreenRequest)
         {
             if (createScreenRequest == null)
-                return BadRequest(new { message = "Invalid request" });
+                return BadRequest(new { message = MessageStrings.InvalidRequest });
+
             try
             {
                 await ScreenService.AddScreenAsync(createScreenRequest);
-                return Ok(new { message = "Screen added successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.ScreenAddedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -91,7 +111,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while adding the screen", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorAddingScreen,
+                    error = ex.Message
+                });
             }
         }
 
@@ -100,11 +124,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> UpdateScreen(Guid screenId, [FromBody] UpdateScreenDto updateScreenDto)
         {
             if (screenId == Guid.Empty)
-                return BadRequest(new { message = "Invalid screen ID" });
+                return BadRequest(new { message = MessageStrings.InvalidScreenId });
+
             try
             {
                 await ScreenService.UpdateScreenAsync(screenId, updateScreenDto);
-                return Ok(new { message = "Screen updated successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.ScreenUpdatedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -112,7 +141,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while updating the screen", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorUpdatingScreen,
+                    error = ex.Message
+                });
             }
         }
 
@@ -121,11 +154,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> DeleteScreen(Guid screenId)
         {
             if (screenId == Guid.Empty)
-                return BadRequest(new { message = "Invalid screen ID" });
+                return BadRequest(new { message = MessageStrings.InvalidScreenId });
+
             try
             {
                 await ScreenService.DeleteScreenAsync(screenId);
-                return Ok(new { message = "Screen deleted successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.ScreenDeletedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -133,7 +171,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting the screen", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorDeletingScreen,
+                    error = ex.Message
+                });
             }
         }
     }

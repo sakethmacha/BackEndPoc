@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.Booking;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using System.Security.Claims;
 
 namespace MovieBooking.Api.Controllers
@@ -38,7 +39,7 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetShowTimes(Guid movieId, [FromQuery] string date)
         {
             if (!DateOnly.TryParse(date, out var parsedDate))
-            return BadRequest("Invalid date format. Use YYYY-MM-DD");
+            return BadRequest(MessageStrings.InvalidDate);
 
             var showTimes = await BookingService.GetShowTimesByMovieAsync(movieId, parsedDate);
             return Ok(showTimes);
@@ -131,7 +132,7 @@ namespace MovieBooking.Api.Controllers
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             await BookingService.CancelBookingAsync(userId, cancelBookingRequestDto);
-            return Ok(new { message = "Booking cancelled successfully" });
+            return Ok(new { message = MessageStrings.BookingCancelled });
         }
     }
 }

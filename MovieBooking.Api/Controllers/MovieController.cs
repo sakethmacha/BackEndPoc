@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 
 namespace MovieBooking.Api.Controllers
 {
@@ -32,7 +33,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving movies", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingMovies,
+                    error = ex.Message
+                });
             }
         }
 
@@ -41,7 +46,8 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetMovieById(Guid movieId)
         {
             if (movieId == Guid.Empty)
-                return BadRequest(new { message = "Invalid movie ID" });
+                return BadRequest(new { message = MessageStrings.InvalidMovieId });
+
             try
             {
                 var movie = await MovieService.GetMovieByIdAsync(movieId);
@@ -53,7 +59,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving the movie", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingMovie,
+                    error = ex.Message
+                });
             }
         }
 
@@ -64,7 +74,11 @@ namespace MovieBooking.Api.Controllers
             try
             {
                 await MovieService.AddMovieAsync(addMovieDto);
-                return Ok(new { message = "Movie added successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.MovieAddedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -72,7 +86,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while adding the movie", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorAddingMovie,
+                    error = ex.Message
+                });
             }
         }
 
@@ -81,11 +99,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> ToggleMovie(Guid movieId)
         {
             if (movieId == Guid.Empty)
-                return BadRequest(new { message = "Invalid movie ID" });
+                return BadRequest(new { message = MessageStrings.InvalidMovieId });
+
             try
             {
                 await MovieService.ToggleMovieAsync(movieId);
-                return Ok(new { message = "Movie status toggled successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.MovieStatusToggledSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -93,7 +116,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while toggling the movie", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorTogglingMovie,
+                    error = ex.Message
+                });
             }
         }
 
@@ -102,11 +129,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> UpdateMovie(Guid movieId, [FromBody] UpdateMovieDto updateMovieDto)
         {
             if (movieId == Guid.Empty)
-                return BadRequest(new { message = "Invalid movie ID" });
+                return BadRequest(new { message = MessageStrings.InvalidMovieId });
+
             try
             {
                 await MovieService.UpdateMovieAsync(movieId, updateMovieDto);
-                return Ok(new { message = "Movie updated successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.MovieUpdatedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -114,7 +146,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while updating the movie", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorUpdatingMovie,
+                    error = ex.Message
+                });
             }
         }
 
@@ -123,11 +159,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> DeleteMovie(Guid movieId)
         {
             if (movieId == Guid.Empty)
-                return BadRequest(new { message = "Invalid movie ID" });
+                return BadRequest(new { message = MessageStrings.InvalidMovieId });
+
             try
             {
                 await MovieService.DeleteMovieAsync(movieId);
-                return Ok(new { message = "Movie deleted successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.MovieDeletedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -135,7 +176,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting the movie", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorDeletingMovie,
+                    error = ex.Message
+                });
             }
         }
     }

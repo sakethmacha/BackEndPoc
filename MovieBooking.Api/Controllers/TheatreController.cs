@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
-using MovieBooking.Domain.Entities;
+using MovieBooking.Domain.Constants;
 using System.Security.Claims;
 
 namespace MovieBooking.Api.Controllers
@@ -34,7 +34,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving theatres", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingTheatres,
+                    error = ex.Message
+                });
             }
         }
 
@@ -43,7 +47,8 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetTheatreById(Guid theatreId)
         {
             if (theatreId == Guid.Empty)
-                return BadRequest(new { message = "Invalid theatre ID" });
+                return BadRequest(new { message = MessageStrings.InvalidTheatreId });
+
             try
             {
                 var theatre = await TheatreService.GetTheatreByIdAsync(theatreId);
@@ -55,7 +60,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving the theatre", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingTheatre,
+                    error = ex.Message
+                });
             }
         }
 
@@ -66,8 +75,13 @@ namespace MovieBooking.Api.Controllers
             try
             {
                 var superAdminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
                 await TheatreService.AddTheatreAsync(createTheatreDto, superAdminId);
-                return Ok(new { message = "Theatre added successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.TheatreAddedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -75,7 +89,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while adding the theatre", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorAddingTheatre,
+                    error = ex.Message
+                });
             }
         }
 
@@ -84,11 +102,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> UpdateTheatre(Guid theatreId, [FromBody] UpdateTheatreDto updateTheatreDto)
         {
             if (theatreId == Guid.Empty)
-                return BadRequest(new { message = "Invalid theatre ID" });
+                return BadRequest(new { message = MessageStrings.InvalidTheatreId });
+
             try
             {
                 await TheatreService.UpdateTheatreAsync(theatreId, updateTheatreDto);
-                return Ok(new { message = "Theatre updated successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.TheatreUpdatedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -96,7 +119,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while updating the theatre", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorUpdatingTheatre,
+                    error = ex.Message
+                });
             }
         }
 
@@ -105,11 +132,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> DeleteTheatre(Guid theatreId)
         {
             if (theatreId == Guid.Empty)
-                return BadRequest(new { message = "Invalid theatre ID" });
+                return BadRequest(new { message = MessageStrings.InvalidTheatreId });
+
             try
             {
                 await TheatreService.DeleteTheatreAsync(theatreId);
-                return Ok(new { message = "Theatre deleted successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.TheatreDeletedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -117,7 +149,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting the theatre", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorDeletingTheatre,
+                    error = ex.Message
+                });
             }
         }
     }

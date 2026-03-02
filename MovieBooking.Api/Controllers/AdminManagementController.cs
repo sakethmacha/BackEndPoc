@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 
 namespace MovieBooking.Api.Controllers
 {
@@ -32,7 +33,7 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving admins", error = ex.Message });
+                return StatusCode(500, new { message = MessageStrings.AdminRetrievingError, error = ex.Message });
             }
         }
 
@@ -41,7 +42,7 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetAdminById(Guid adminId)
         {
             if (adminId == Guid.Empty)
-                return BadRequest(new { message = "Invalid admin ID" });
+                return BadRequest(new { message = MessageStrings.InvalidAdminID });
             try
             {
                 var admin = await AdminManagementService.GetAdminByIdAsync(adminId);
@@ -53,7 +54,7 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving the admin", error = ex.Message });
+                return StatusCode(500, new { message = MessageStrings.AdminRetrievingError, error = ex.Message });
             }
         }
 
@@ -64,7 +65,7 @@ namespace MovieBooking.Api.Controllers
             try
             {
                 await AdminManagementService.CreateAdminAsync(createAdminDto);
-                return Ok(new { message = "Admin created successfully" });
+                return Ok(new { message = MessageStrings.AdminCreteSuccess });
             }
             catch (InvalidOperationException ex)
             {
@@ -72,41 +73,41 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while creating the admin", error = ex.Message });
+                return StatusCode(500, new { message = MessageStrings.AdminCreationError, error = ex.Message });
             }
         }
 
         /// <summary>Toggles admin active status</summary>
-        [HttpPut("{adminId}/toggle")]
-        public async Task<IActionResult> ToggleAdmin(Guid adminId)
-        {
-            if (adminId == Guid.Empty)
-                return BadRequest(new { message = "Invalid admin ID" });
-            try
-            {
-                await AdminManagementService.ToggleAdminAsync(adminId);
-                return Ok(new { message = "Admin status toggled successfully" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while toggling the admin", error = ex.Message });
-            }
-        }
+        //[HttpPut("{adminId}/toggle")]
+        //public async Task<IActionResult> DeleteAdmin(Guid adminId)
+        //{
+        //    if (adminId == Guid.Empty)
+        //        return BadRequest(new { message = MessageStrings.InvalidAdminID });
+        //    try
+        //    {
+        //        await AdminManagementService.DeleteAdminAsync(adminId);
+        //        return Ok(new { message = MessageStrings.AdminDeleted });
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = MessageStrings.AdminDeleteError, error = ex.Message });
+        //    }
+        //}
 
         /// <summary>Updates an existing admin</summary>
         [HttpPut("{adminId}")]
         public async Task<IActionResult> UpdateAdmin(Guid adminId, [FromBody] UpdateAdminDto updateAdminDto)
         {
             if (adminId == Guid.Empty)
-                return BadRequest(new { message = "Invalid admin ID" });
+                return BadRequest(new { message = MessageStrings.InvalidAdminID });
             try
             {
                 await AdminManagementService.UpdateAdminAsync(adminId, updateAdminDto);
-                return Ok(new { message = "Admin updated successfully" });
+                return Ok(new { message = MessageStrings.AdminUpdated });
             }
             catch (InvalidOperationException ex)
             {
@@ -114,7 +115,7 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while updating the admin", error = ex.Message });
+                return StatusCode(500, new { message = MessageStrings.AdminUpdateError, error = ex.Message });
             }
         }
 
@@ -123,11 +124,11 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> DeleteAdmin(Guid adminId)
         {
             if (adminId == Guid.Empty)
-                return BadRequest(new { message = "Invalid admin ID" });
+                return BadRequest(new { message = MessageStrings.InvalidAdminID });
             try
             {
                 await AdminManagementService.DeleteAdminAsync(adminId);
-                return Ok(new { message = "Admin deleted successfully" });
+                return Ok(new { message = MessageStrings.AdminDeleted });
             }
             catch (InvalidOperationException ex)
             {
@@ -135,7 +136,7 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting the admin", error = ex.Message });
+                return StatusCode(500, new { message = MessageStrings.AdminDeleteError, error = ex.Message });
             }
         }
     }

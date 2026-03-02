@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 
 namespace MovieBooking.Api.Controllers
 {
@@ -32,7 +33,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving showtimes", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingShowTimes,
+                    error = ex.Message
+                });
             }
         }
 
@@ -41,7 +46,8 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetShowTimeById(Guid showTimeId)
         {
             if (showTimeId == Guid.Empty)
-                return BadRequest(new { message = "Invalid showtime ID" });
+                return BadRequest(new { message = MessageStrings.InvalidShowTimeId });
+
             try
             {
                 var showTime = await ShowTimeService.GetShowTimeByIdAsync(showTimeId);
@@ -53,7 +59,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while retrieving the showtime", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorRetrievingShowTime,
+                    error = ex.Message
+                });
             }
         }
 
@@ -64,7 +74,11 @@ namespace MovieBooking.Api.Controllers
             try
             {
                 await ShowTimeService.AddShowTimeAsync(createShowRequest);
-                return Ok(new { message = "ShowTimes created successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.ShowTimesCreatedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -72,7 +86,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while adding the showtime", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorAddingShowTime,
+                    error = ex.Message
+                });
             }
         }
 
@@ -81,11 +99,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> UpdateShowTime(Guid showTimeId, [FromBody] UpdateShowTimeDto updateShowTimeDto)
         {
             if (showTimeId == Guid.Empty)
-                return BadRequest(new { message = "Invalid showtime ID" });
+                return BadRequest(new { message = MessageStrings.InvalidShowTimeId });
+
             try
             {
                 await ShowTimeService.UpdateShowTimeAsync(showTimeId, updateShowTimeDto);
-                return Ok(new { message = "ShowTime updated successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.ShowTimeUpdatedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -93,7 +116,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while updating the showtime", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorUpdatingShowTime,
+                    error = ex.Message
+                });
             }
         }
 
@@ -102,11 +129,16 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> DeleteShowTime(Guid showTimeId)
         {
             if (showTimeId == Guid.Empty)
-                return BadRequest(new { message = "Invalid showtime ID" });
+                return BadRequest(new { message = MessageStrings.InvalidShowTimeId });
+
             try
             {
                 await ShowTimeService.DeleteShowTimeAsync(showTimeId);
-                return Ok(new { message = "ShowTime deleted successfully" });
+
+                return Ok(new
+                {
+                    message = MessageStrings.ShowTimeDeletedSuccessfully
+                });
             }
             catch (InvalidOperationException ex)
             {
@@ -114,7 +146,11 @@ namespace MovieBooking.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting the showtime", error = ex.Message });
+                return StatusCode(500, new
+                {
+                    message = MessageStrings.ErrorDeletingShowTime,
+                    error = ex.Message
+                });
             }
         }
     }
