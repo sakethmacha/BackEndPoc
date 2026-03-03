@@ -1,4 +1,5 @@
-﻿namespace MovieBooking.Application.DTOs.SuperAdmin
+﻿using Microsoft.AspNetCore.Http;
+namespace MovieBooking.Application.DTOs.SuperAdmin
 {
     public class AddMovieDto
     {
@@ -6,6 +7,8 @@
         public string Description { get; set; }
         public int DurationMinutes { get; set; }
         public DateTime ReleaseDate { get; set; }
-        public string PosterUrl { get; set; }
+       // public string PosterUrl { get; set; }
+
+        public IFormFile? PosterFile { get; set; }
     }
 }

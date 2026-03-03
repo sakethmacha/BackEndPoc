@@ -16,9 +16,6 @@ namespace MovieBooking.Application.Interfaces.Services
         /// <summary>Adds a new movie</summary>
         Task AddMovieAsync(AddMovieDto addMovieDto);
 
-        /// <summary>Toggles movie active status</summary>
-        Task ToggleMovieAsync(Guid movieId);
-
         /// <summary>Updates an existing movie</summary>
         Task UpdateMovieAsync(Guid movieId, UpdateMovieDto updateMovieDto);
 
