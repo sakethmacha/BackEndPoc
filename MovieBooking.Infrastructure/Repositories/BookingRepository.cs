@@ -16,8 +16,7 @@ namespace MovieBooking.Infrastructure.Repositories
             DbContext = dbContext;
         }
 
-        // ========== MOVIE & SHOWTIME QUERIES ==========
-
+       
         public async Task<List<Movie>> GetActiveMoviesAsync()
         {
             return await DbContext.Movies
@@ -59,8 +58,7 @@ namespace MovieBooking.Infrastructure.Repositories
             return showTime;
         }
 
-        // ========== SEAT QUERIES ==========
-
+    
         public async Task<List<Seat>> GetSeatsByScreenAsync(Guid screenId)
         {
             return await DbContext.Seats
@@ -91,8 +89,6 @@ namespace MovieBooking.Infrastructure.Repositories
                     && sl.ExpiresAt > now)
                 .ToListAsync();
         }
-
-        // ========== SEAT LOCKING ==========
 
         public async Task<List<SeatLock>> LockSeatsAsync(Guid userId, Guid showTimeId, List<Guid> seatIds)
         {
@@ -185,8 +181,6 @@ namespace MovieBooking.Infrastructure.Repositories
             return !lockedSeats.Any();
         }
 
-        // ========== BOOKING OPERATIONS ==========
-
         public async Task<Booking> CreateBookingAsync(Booking booking)
         {
             DbContext.Bookings.Add(booking);
@@ -236,8 +230,6 @@ namespace MovieBooking.Infrastructure.Repositories
             await DbContext.SaveChangesAsync();
         }
 
-        // ========== PAYMENT OPERATIONS ==========
-
         public async Task<Payment> CreatePaymentAsync(Payment payment)
         {
             DbContext.Payments.Add(payment);
@@ -263,15 +255,11 @@ namespace MovieBooking.Infrastructure.Repositories
             await DbContext.SaveChangesAsync();
         }
 
-        // ========== NOTIFICATION ==========
-
         public async Task AddNotificationLogAsync(NotificationLog log)
         {
             DbContext.NotificationLogs.Add(log);
             await DbContext.SaveChangesAsync();
         }
-
-        // ========== USER ==========
 
         public async Task<User> GetUserByIdAsync(Guid userId)
         {
