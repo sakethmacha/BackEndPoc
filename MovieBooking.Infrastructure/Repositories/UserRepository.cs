@@ -9,9 +9,9 @@ namespace MovieBooking.Infrastructure.Repositories
     {
         private readonly MovieBookingDatabaseContext DbContext;
 
-        public UserRepository(MovieBookingDatabaseContext Context)
+        public UserRepository(MovieBookingDatabaseContext dbContext)
         {
-            this.DbContext = Context;
+            this.DbContext = dbContext;
         }
 
         public async Task<User?> GetByEmailAsync(string Email)

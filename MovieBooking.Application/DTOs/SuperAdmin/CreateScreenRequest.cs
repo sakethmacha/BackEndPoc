@@ -1,4 +1,6 @@
-﻿namespace MovieBooking.Application.DTOs.SuperAdmin
+﻿using MovieBooking.Domain.Enums;
+
+namespace MovieBooking.Application.DTOs.SuperAdmin
 {
     public class CreateScreenRequest
     {
@@ -6,7 +8,7 @@
         public string ScreenName { get; set; } = string.Empty;
 
         // string because it comes from client (MVC / Swagger)
-        public string SeatLayoutType { get; set; } = string.Empty;
+        public SeatLayoutType SeatLayoutType { get; set; } 
 
         public List<CreateSeatRowRequest> SeatRows { get; set; } = new();
     }

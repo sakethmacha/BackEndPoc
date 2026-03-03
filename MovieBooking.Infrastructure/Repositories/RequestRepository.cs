@@ -1,37 +1,40 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.DTOs.Admin;
 using MovieBooking.Application.Interfaces.Repositories;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 using MovieBooking.Infrastructure.Persistence;
 
 namespace MovieBooking.Infrastructure.Repositories
 {
-    public class AdminRepository : IAdminRepository
+    public class RequestRepository : IRequestRepository
     {
         private readonly MovieBookingDatabaseContext DbContext;
 
-        public AdminRepository(MovieBookingDatabaseContext db)
+        public RequestRepository(MovieBookingDatabaseContext dbContext)
         {
-            DbContext = db;
+            DbContext = dbContext;
         }
 
         // ========== THEATRE MANAGEMENT ==========
 
-        public async Task<Guid> CreateTheatreRequestAsync(Theatre theatre, List<TheatreTimeSlot> timeSlots, AdminRequest request)
+        public async Task<Guid> CreateTheatreRequestAsync(
+            Theatre theatre,
+            List<TheatreTimeSlot> timeSlots,
+            AdminRequest request)
         {
-            using var transaction = await DbContext.Database.BeginTransactionAsync();
+            using var transaction =
+                await DbContext.Database.BeginTransactionAsync();
+
             try
             {
-                // Add theatre with PENDING status
                 DbContext.Theatres.Add(theatre);
                 await DbContext.SaveChangesAsync();
 
-                // Add time slots
                 DbContext.TheatreTimeSlots.AddRange(timeSlots);
                 await DbContext.SaveChangesAsync();
 
-                // Create approval request
                 request.ReferenceId = theatre.TheatreId;
                 DbContext.AdminRequests.Add(request);
                 await DbContext.SaveChangesAsync();
@@ -62,27 +65,30 @@ namespace MovieBooking.Infrastructure.Repositories
                 .FirstOrDefaultAsync(t => t.TheatreId == theatreId);
 
             if (theatre == null)
-                throw new InvalidOperationException("Theatre not found");
+                throw new InvalidOperationException(
+                    MessageStrings.TheatreNotFound);
 
             return theatre;
         }
 
         // ========== SCREEN MANAGEMENT ==========
 
-        public async Task<Guid> CreateScreenRequestAsync(Screen screen, List<Seat> seats, AdminRequest request)
+        public async Task<Guid> CreateScreenRequestAsync(
+            Screen screen,
+            List<Seat> seats,
+            AdminRequest request)
         {
-            using var transaction = await DbContext.Database.BeginTransactionAsync();
+            using var transaction =
+                await DbContext.Database.BeginTransactionAsync();
+
             try
             {
-                // Add screen with PENDING status
                 DbContext.Screens.Add(screen);
                 await DbContext.SaveChangesAsync();
 
-                // Add seats
                 DbContext.Seats.AddRange(seats);
                 await DbContext.SaveChangesAsync();
 
-                // Create approval request
                 request.ReferenceId = screen.ScreenId;
                 DbContext.AdminRequests.Add(request);
                 await DbContext.SaveChangesAsync();
@@ -107,7 +113,6 @@ namespace MovieBooking.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-
         public async Task<Screen> GetScreenByIdAsync(Guid screenId)
         {
             var screen = await DbContext.Screens
@@ -116,7 +121,8 @@ namespace MovieBooking.Infrastructure.Repositories
                 .FirstOrDefaultAsync(s => s.ScreenId == screenId);
 
             if (screen == null)
-                throw new InvalidOperationException("Screen not found");
+                throw new InvalidOperationException(
+                    MessageStrings.ScreenNotFound);
 
             return screen;
         }
@@ -134,8 +140,10 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<AdminRequest> GetRequestByIdAsync(Guid requestId)
         {
             var request = await DbContext.AdminRequests.FindAsync(requestId);
+
             if (request == null)
-                throw new InvalidOperationException("Request not found");
+                throw new InvalidOperationException(
+                    MessageStrings.RequestNotFound);
 
             return request;
         }

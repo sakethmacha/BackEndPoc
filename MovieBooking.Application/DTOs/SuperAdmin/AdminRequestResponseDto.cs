@@ -1,4 +1,5 @@
-﻿namespace MovieBooking.Application.DTOs.SuperAdmin
+﻿using MovieBooking.Domain.Enums;
+namespace MovieBooking.Application.DTOs.SuperAdmin
 {
     public class AdminRequestResponseDto
     {

@@ -52,7 +52,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<List<Movie>> GetAllAsync()
         {
             return await DbContext.Movies
-                .Where(m => m.IsActive)          
+                .Where(m => m.IsActive)
                 .AsNoTracking()
                 .OrderByDescending(m => m.ReleaseDate)
                 .ToListAsync();
@@ -74,7 +74,7 @@ namespace MovieBooking.Infrastructure.Repositories
         }
         public async Task<List<Theatre>> GetTheatresAsync()
       => await DbContext.Theatres
-          .Where(t => t.IsActive)     
+          .Where(t => t.IsActive)
           .AsNoTracking()
           .ToListAsync();
 
@@ -86,7 +86,7 @@ namespace MovieBooking.Infrastructure.Repositories
 
         public async Task<List<Screen>> GetScreensAsync()
        => await DbContext.Screens
-        .Where(s => s.IsActive)     
+        .Where(s => s.IsActive)
         .AsNoTracking()
         .ToListAsync();
 
@@ -101,7 +101,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<List<ShowTime>> GetShowTimesAsync()
         {
             return await DbContext.ShowTimes
-                .Where(st => st.IsActive)          
+                .Where(st => st.IsActive)
                 .Include(st => st.Movie)
                 .Include(st => st.Theatre)
                 .Include(st => st.Screen)
@@ -131,7 +131,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task UpdateRequestAsync(AdminRequest adminRequest)
         {
             DbContext.AdminRequests.Update(adminRequest);
-            
+
             await DbContext.SaveChangesAsync();
         }
 
@@ -146,7 +146,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task RejectTheatreAsync(Guid theatreId)
         {
             var theatre = await DbContext.Theatres.FindAsync(theatreId);
-         
+
             //var timeslot= await DbContext.TheatreTimeSlots.FindAsync(theatreId);
             //timeslot.IsActive = true;
             theatre.ApprovalStatus = ApprovalStatus.REJECTED;
@@ -167,7 +167,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task RejectScreenAsync(Guid screenId)
         {
             var screen = await DbContext.Screens.FindAsync(screenId);
-          
+
             screen.ApprovalStatus = ApprovalStatus.REJECTED;
         }
         public async Task<bool> ShowTimeConflictExistsAsync(
@@ -234,17 +234,17 @@ namespace MovieBooking.Infrastructure.Repositories
 
             return screen;
         }
-        public async Task DeleteTheatreTimeSlotsAsync(Guid theatreId) 
-        { 
-            var timeSlots = await DbContext.TheatreTimeSlots.Where(ts => ts.TheatreId == theatreId).ToListAsync(); 
-            DbContext.TheatreTimeSlots.RemoveRange(timeSlots);
-            await DbContext.SaveChangesAsync(); 
-        }
-        public async Task DeleteScreenSeatsAsync(Guid screenId) 
+        public async Task DeleteTheatreTimeSlotsAsync(Guid theatreId)
         {
-            var seats = await DbContext.Seats.Where(s => s.ScreenId == screenId).ToListAsync(); 
-            DbContext.Seats.RemoveRange(seats); 
-            await DbContext.SaveChangesAsync(); 
+            var timeSlots = await DbContext.TheatreTimeSlots.Where(ts => ts.TheatreId == theatreId).ToListAsync();
+            DbContext.TheatreTimeSlots.RemoveRange(timeSlots);
+            await DbContext.SaveChangesAsync();
+        }
+        public async Task DeleteScreenSeatsAsync(Guid screenId)
+        {
+            var seats = await DbContext.Seats.Where(s => s.ScreenId == screenId).ToListAsync();
+            DbContext.Seats.RemoveRange(seats);
+            await DbContext.SaveChangesAsync();
         }
         public async Task<ShowTime> GetShowTimeByIdAsync(Guid showTimeId)
         {
@@ -330,7 +330,7 @@ namespace MovieBooking.Infrastructure.Repositories
             // deactivate screen
             screen.IsActive = false;
 
-           
+
             foreach (var seat in screen.Seats)
             {
                 seat.IsActive = false;

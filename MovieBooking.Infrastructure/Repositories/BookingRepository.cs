@@ -1,6 +1,6 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.Interfaces.Repositories;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 using MovieBooking.Infrastructure.Persistence;
@@ -11,9 +11,9 @@ namespace MovieBooking.Infrastructure.Repositories
     {
         private readonly MovieBookingDatabaseContext DbContext;
 
-        public BookingRepository(MovieBookingDatabaseContext context)
+        public BookingRepository(MovieBookingDatabaseContext dbContext)
         {
-            DbContext = context;
+            DbContext = dbContext;
         }
 
         // ========== MOVIE & SHOWTIME QUERIES ==========
@@ -54,7 +54,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 .FirstOrDefaultAsync(st => st.ShowTimeId == showTimeId);
 
             if (showTime == null)
-                throw new InvalidOperationException("ShowTime not found");
+                throw new InvalidOperationException(MessageStrings.ShowTimeNotFound);
 
             return showTime;
         }
@@ -84,6 +84,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<List<SeatLock>> GetActiveSeatLocksForShowAsync(Guid showTimeId)
         {
             var now = DateTime.UtcNow;
+
             return await DbContext.SeatLocks
                 .Where(sl => sl.ShowTimeId == showTimeId
                     && sl.Status == SeatLockStatus.LOCKED
@@ -125,24 +126,27 @@ namespace MovieBooking.Infrastructure.Repositories
             {
                 seatlock.Status = SeatLockStatus.EXPIRED;
             }
+
             var now = DateTime.UtcNow;
 
             var expiredBookings = await DbContext.Bookings
-       .Where(b =>
-           b.Status == BookingStatus.PENDING &&
-           b.CreatedAt.AddMinutes(5) <= now)
-       .ToListAsync();
+                .Where(b =>
+                    b.Status == BookingStatus.PENDING &&
+                    b.CreatedAt.AddMinutes(5) <= now)
+                .ToListAsync();
 
             foreach (var booking in expiredBookings)
             {
                 booking.Status = BookingStatus.FAILED;
             }
+
             await DbContext.SaveChangesAsync();
         }
 
         public async Task ReleaseExpiredLocksAsync()
         {
             var now = DateTime.UtcNow;
+
             var expiredLocks = await DbContext.SeatLocks
                 .Where(sl => sl.Status == SeatLockStatus.LOCKED && sl.ExpiresAt <= now)
                 .ToListAsync();
@@ -159,7 +163,6 @@ namespace MovieBooking.Infrastructure.Repositories
         {
             var now = DateTime.UtcNow;
 
-            // Check if seats are already booked
             var bookedSeats = await DbContext.BookingSeats
                 .Where(bs => bs.ShowTimeId == showTimeId
                     && seatIds.Contains(bs.SeatId)
@@ -171,7 +174,6 @@ namespace MovieBooking.Infrastructure.Repositories
             if (bookedSeats.Any())
                 return false;
 
-            // Check if seats are locked by other users
             var lockedSeats = await DbContext.SeatLocks
                 .Where(sl => sl.ShowTimeId == showTimeId
                     && seatIds.Contains(sl.SeatId)
@@ -202,21 +204,16 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<Booking> GetBookingByIdAsync(Guid bookingId)
         {
             var booking = await DbContext.Bookings
-                .Include(b => b.ShowTime)
-                    .ThenInclude(st => st.Movie)
-                .Include(b => b.ShowTime)
-                    .ThenInclude(st => st.Theatre)
-                .Include(b => b.ShowTime)
-                    .ThenInclude(st => st.Screen)
-                .Include(b => b.ShowTime)
-                    .ThenInclude(st => st.Language)
-                .Include(b => b.BookingSeats)
-                    .ThenInclude(bs => bs.Seat)
+                .Include(b => b.ShowTime).ThenInclude(st => st.Movie)
+                .Include(b => b.ShowTime).ThenInclude(st => st.Theatre)
+                .Include(b => b.ShowTime).ThenInclude(st => st.Screen)
+                .Include(b => b.ShowTime).ThenInclude(st => st.Language)
+                .Include(b => b.BookingSeats).ThenInclude(bs => bs.Seat)
                 .Include(b => b.Payment)
                 .FirstOrDefaultAsync(b => b.BookingId == bookingId);
 
             if (booking == null)
-                throw new InvalidOperationException("Booking not found");
+                throw new InvalidOperationException(MessageStrings.BookingNotFound);
 
             return booking;
         }
@@ -224,14 +221,10 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<List<Booking>> GetUserBookingsAsync(Guid userId)
         {
             return await DbContext.Bookings
-                .Include(b => b.ShowTime)
-                    .ThenInclude(st => st.Movie)
-                .Include(b => b.ShowTime)
-                    .ThenInclude(st => st.Theatre)
-                .Include(b => b.ShowTime)
-                    .ThenInclude(st => st.Screen)
-                .Include(b => b.BookingSeats)
-                    .ThenInclude(bs => bs.Seat)
+                .Include(b => b.ShowTime).ThenInclude(st => st.Movie)
+                .Include(b => b.ShowTime).ThenInclude(st => st.Theatre)
+                .Include(b => b.ShowTime).ThenInclude(st => st.Screen)
+                .Include(b => b.BookingSeats).ThenInclude(bs => bs.Seat)
                 .Where(b => b.UserId == userId)
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
@@ -259,7 +252,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.PaymentId == paymentId);
 
             if (payment == null)
-                throw new InvalidOperationException("Payment not found");
+                throw new InvalidOperationException(MessageStrings.PaymentNotFound);
 
             return payment;
         }
@@ -283,15 +276,16 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task<User> GetUserByIdAsync(Guid userId)
         {
             var user = await DbContext.Users.FindAsync(userId);
+
             if (user == null)
-                throw new InvalidOperationException("User not found");
+                throw new InvalidOperationException(MessageStrings.UserNotFound);
+
             return user;
         }
-        //
-       
+
         public async Task<List<BookingSeat>> GetLockedBookingSeatsAsync(
-    Guid showTimeId,
-    List<Guid> seatIds)
+            Guid showTimeId,
+            List<Guid> seatIds)
         {
             return await DbContext.BookingSeats
                 .Where(bs =>
@@ -300,7 +294,11 @@ namespace MovieBooking.Infrastructure.Repositories
                     bs.Status == SeatLockStatus.LOCKED)
                 .ToListAsync();
         }
-        public async Task<bool> CanUserBookSeatsAsync(Guid showTimeId,List<Guid> seatIds,Guid userId)
+
+        public async Task<bool> CanUserBookSeatsAsync(
+            Guid showTimeId,
+            List<Guid> seatIds,
+            Guid userId)
         {
             var now = DateTime.UtcNow;
 
@@ -310,19 +308,18 @@ namespace MovieBooking.Infrastructure.Repositories
                     && seatIds.Contains(sl.SeatId)
                     &&
                     (
-                        //  Seat already booked (final)
                         sl.Status == SeatLockStatus.BOOKED
-
-                        //  Seat locked by another user and not expired
                         || (sl.Status == SeatLockStatus.LOCKED
                             && sl.UserId != userId
                             && sl.ExpiresAt > now)
                     )
                 );
         }
-        // MovieBooking.Infrastructure/Repositories/BookingRepository.cs
 
-        public async Task ConvertLocksToBookingAsync(Guid userId, Guid showTimeId, List<Guid> seatIds)
+        public async Task ConvertLocksToBookingAsync(
+            Guid userId,
+            Guid showTimeId,
+            List<Guid> seatIds)
         {
             var locks = await DbContext.SeatLocks
                 .Where(sl => sl.UserId == userId
@@ -331,9 +328,8 @@ namespace MovieBooking.Infrastructure.Repositories
                     && sl.Status == SeatLockStatus.LOCKED)
                 .ToListAsync();
 
-            // Don't delete locks, just mark them as expired since booking is created
             foreach (var seatlock in locks)
-    {
+            {
                 seatlock.Status = SeatLockStatus.EXPIRED;
             }
 

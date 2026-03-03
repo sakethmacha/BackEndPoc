@@ -2,7 +2,7 @@
 
 namespace MovieBooking.Application.Interfaces.Services
 {
-    public interface IAdminService
+    public interface IRequestService
     {
         // Theatre Requests
         Task<Guid> RequestTheatreAsync(CreateTheatreRequestDto dto, Guid adminId);

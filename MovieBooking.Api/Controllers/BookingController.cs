@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MovieBooking.Application.DTOs.Booking;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using System.Security.Claims;
 
 namespace MovieBooking.Api.Controllers
@@ -18,7 +19,6 @@ namespace MovieBooking.Api.Controllers
             BookingService = bookingService;
         }
 
-        // ========== BROWSE MOVIES & SHOWS ==========
 
         /// <summary>
         /// Get all active movies
@@ -39,13 +39,11 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> GetShowTimes(Guid movieId, [FromQuery] string date)
         {
             if (!DateOnly.TryParse(date, out var parsedDate))
-            return BadRequest("Invalid date format. Use YYYY-MM-DD");
+            return BadRequest(MessageStrings.InvalidDate);
 
             var showTimes = await BookingService.GetShowTimesByMovieAsync(movieId, parsedDate);
             return Ok(showTimes);
         }
-
-        // ========== SEAT SELECTION ==========
 
         /// <summary>
         /// Get seat layout for a showtime
@@ -72,8 +70,7 @@ namespace MovieBooking.Api.Controllers
             return Ok(response);
         }
 
-        // ========== BOOKING & PAYMENT ==========
-
+        
         /// <summary>
         /// Create a new booking
         /// </summary>
@@ -102,8 +99,7 @@ namespace MovieBooking.Api.Controllers
             return Ok(payment);
         }
 
-        // ========== USER BOOKINGS ==========
-
+     
         /// <summary>
         /// Get all bookings for the current user
         /// </summary>
@@ -136,7 +132,7 @@ namespace MovieBooking.Api.Controllers
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             await BookingService.CancelBookingAsync(userId, cancelBookingRequestDto);
-            return Ok(new { message = "Booking cancelled successfully" });
+            return Ok(new { message = MessageStrings.BookingCancelled });
         }
     }
 }

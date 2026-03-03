@@ -70,7 +70,7 @@ namespace MovieBooking.Application.Services
                 DurationMinutes = m.DurationMinutes,
                 ReleaseDate = m.ReleaseDate,
                 IsActive = m.IsActive,
-                PosterUrl =m.PosterUrl
+                PosterUrl = m.PosterUrl
             }).ToList();
         }
 
@@ -118,7 +118,7 @@ namespace MovieBooking.Application.Services
                         "Theatre show timings cannot overlap");
             }
 
-            // 3️⃣ Create theatre
+            // 3️ Create theatre
             var theatre = new Theatre
             {
                 TheatreId = Guid.NewGuid(),
@@ -130,7 +130,7 @@ namespace MovieBooking.Application.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            // 4️⃣ Create TheatreTimeSlot entities
+            // 4️ Create TheatreTimeSlot entities
             var timeSlots = parsedSlots.Select(p => new TheatreTimeSlot
             {
                 TheatreTimeSlotId = Guid.NewGuid(),
@@ -140,7 +140,7 @@ namespace MovieBooking.Application.Services
                 IsActive = true
             }).ToList();
 
-            // Persist
+            // 5️ Persist
             await SuperAdminRepository.AddTheatreWithTimeSlotsAsync(theatre, timeSlots);
         }
 
@@ -152,15 +152,15 @@ namespace MovieBooking.Application.Services
                 throw new InvalidOperationException("Seat layout is required");
 
             //  parse SeatLayoutType (string → enum)
-            if (!Enum.TryParse<SeatLayoutType>(
-                    createScreenRequest.SeatLayoutType, true, out var layoutType))
-                throw new InvalidOperationException("Invalid seat layout type");
+            //if (!Enum.TryParse<SeatLayoutType>(
+            //        createScreenRequest.SeatLayoutType, true, out var layoutType))
+            //    throw new InvalidOperationException("Invalid seat layout type");
 
             var seatRows = new List<CreateSeatRowDto>();
 
             foreach (var row in createScreenRequest.SeatRows)
             {
-                // arse SeatType (string → enum)
+                //  parse SeatType (string → enum)
                 if (!Enum.TryParse<SeatType>(
                         row.SeatType, true, out var seatType))
                     throw new InvalidOperationException(
@@ -180,8 +180,8 @@ namespace MovieBooking.Application.Services
             {
                 TheatreId = createScreenRequest.TheatreId,
                 ScreenName = createScreenRequest.ScreenName,
-                IsActive =true,
-                SeatLayoutType = layoutType,          // enum
+                IsActive = true,
+                SeatLayoutType = SeatLayoutType.STANDARD,          // enum
                 SeatRows = seatRows
             };
 
@@ -231,7 +231,7 @@ namespace MovieBooking.Application.Services
 
         public async Task AddShowTimeAsync(CreateShowTimeDto createShowTimeDto)
         {
-            // 1️⃣ Get theatre timings
+            // 1️ Get theatre timings
             var slots = await SuperAdminRepository.GetTimeSlotsByTheatreAsync(createShowTimeDto.TheatreId);
 
             if (!slots.Any())
@@ -245,7 +245,7 @@ namespace MovieBooking.Application.Services
                 var start = createShowTimeDto.ShowDate.ToDateTime(slot.StartTime);
                 var end = createShowTimeDto.ShowDate.ToDateTime(slot.EndTime);
 
-               // 2️ Business rule: no conflict per screen
+                // 2️ Business rule: no conflict per screen
                 bool conflict = await SuperAdminRepository.ShowTimeConflictExistsAsync(
                     createShowTimeDto.ScreenId, start, end);
 
@@ -267,7 +267,7 @@ namespace MovieBooking.Application.Services
                 });
             }
 
-            // 3️⃣ Persist
+            // 3️ Persist
             await SuperAdminRepository.AddShowTimesAsync(showTimes);
         }
 
@@ -688,7 +688,7 @@ namespace MovieBooking.Application.Services
                 Description = movie.Description,
                 DurationMinutes = movie.DurationMinutes,
                 ReleaseDate = movie.ReleaseDate,
-                PosterUrl=movie.PosterUrl,
+                PosterUrl = movie.PosterUrl,
                 IsActive = movie.IsActive
             };
         }
@@ -738,7 +738,7 @@ namespace MovieBooking.Application.Services
             {
                 TheatreId = screen.TheatreId,
                 ScreenName = screen.ScreenName,
-                SeatLayoutType = screen.SeatLayoutType.ToString(),
+                SeatLayoutType = screen.SeatLayoutType,
                 SeatRows = seatRows
             };
         }
@@ -814,16 +814,16 @@ namespace MovieBooking.Application.Services
                 RequestedAt = r.RequestedAt,
                 ReviewedAt = r.ReviewedAt,
                 RequestedBy = r.RequestedByUser.Name,
-            //    TheatreName =
-            //r.RequestType == RequestType.THEATRE
-            //    ? r.Theatre?.Name
-            //    : r.Screen?.Theatre?.Name,
+                //    TheatreName =
+                //r.RequestType == RequestType.THEATRE
+                //    ? r.Theatre?.Name
+                //    : r.Screen?.Theatre?.Name,
 
-            //    // Screen logic
-            //    ScreenName =
-            //r.RequestType == RequestType.SCREEN
-            //    ? r.Screen?.ScreenName
-            //    : null
+                //    // Screen logic
+                //    ScreenName =
+                //r.RequestType == RequestType.SCREEN
+                //    ? r.Screen?.ScreenName
+                //    : null
             }).ToList();
         }
         public string GetRequestDetails(AdminRequest request)

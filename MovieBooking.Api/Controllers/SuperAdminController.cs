@@ -65,7 +65,7 @@ namespace MovieBooking.Api.Controllers
         {
             //var superAdminId = Guid.Parse(User.FindFirst("UserId")!.Value);
             var superAdminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-           
+
             await SuperAdminService.AddTheatreAsync(createTheatreDto, superAdminId);
             return Ok("Theatre added successfully");
         }
@@ -87,7 +87,7 @@ namespace MovieBooking.Api.Controllers
             return Ok("Screen added successfully");
         }
 
-        
+
         [HttpGet("screens")]
         public async Task<IActionResult> GetScreens()
         {
@@ -130,7 +130,7 @@ namespace MovieBooking.Api.Controllers
             await SuperAdminService.ApproveRequestAsync(requestId);
             return Ok();
         }
-       
+
         [HttpPut("requests/{requestId}/reject")]
         public async Task<IActionResult> RejectRequest(Guid requestId)
         {
