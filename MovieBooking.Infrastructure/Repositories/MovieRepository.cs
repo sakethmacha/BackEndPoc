@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Repositories;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Infrastructure.Persistence;
 
@@ -49,7 +50,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task DeleteMovieAsync(Movie movie)
         {
             if (await MovieHasActiveShowTimesAsync(movie.MovieId))
-                throw new InvalidOperationException("Cannot deactivate movie while active showtimes exist.");
+                throw new InvalidOperationException(MessageStrings.CannotDeactivateMovieWithActiveShowTimes);
             movie.IsActive = false;
             await DbContext.SaveChangesAsync();
         }

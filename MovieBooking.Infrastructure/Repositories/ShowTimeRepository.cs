@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.Interfaces.Repositories;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Infrastructure.Persistence;
 
@@ -40,7 +41,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 .Include(s => s.Language)
                 .FirstOrDefaultAsync(s => s.ShowTimeId == showTimeId);
             if (showTime == null)
-                throw new InvalidOperationException("ShowTime not found");
+                throw new InvalidOperationException(MessageStrings.ShowTimeNotFound);
             return showTime;
         }
 

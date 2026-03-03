@@ -1,6 +1,7 @@
 ﻿using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 
@@ -27,8 +28,9 @@ namespace MovieBooking.Application.Services
         public async Task<AdminDto> GetAdminByIdAsync(Guid adminId)
         {
             var admin = await AdminManagementRepository.GetUserByIdAsync(adminId);
+
             if (admin.Role != UserRole.Admin)
-                throw new InvalidOperationException("User is not an admin");
+                throw new InvalidOperationException(MessageStrings.UserIsNotAdmin);
 
             return new AdminDto
             {
@@ -52,6 +54,7 @@ namespace MovieBooking.Application.Services
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
+
             await AdminManagementRepository.CreateAdminAsync(user);
         }
 
@@ -59,7 +62,12 @@ namespace MovieBooking.Application.Services
         public async Task ToggleAdminAsync(Guid adminId)
         {
             var admin = await AdminManagementRepository.GetUserByIdAsync(adminId);
+
+            if (admin.Role != UserRole.Admin)
+                throw new InvalidOperationException(MessageStrings.UserIsNotAdmin);
+
             admin.IsActive = !admin.IsActive;
+
             await AdminManagementRepository.UpdateUserAsync(admin);
         }
 
@@ -67,11 +75,13 @@ namespace MovieBooking.Application.Services
         public async Task UpdateAdminAsync(Guid adminId, UpdateAdminDto updateAdminDto)
         {
             var admin = await AdminManagementRepository.GetUserByIdAsync(adminId);
+
             if (admin.Role != UserRole.Admin)
-                throw new InvalidOperationException("User is not an admin");
+                throw new InvalidOperationException(MessageStrings.UserIsNotAdmin);
 
             admin.Name = updateAdminDto.Name;
             admin.Email = updateAdminDto.Email;
+
             if (!string.IsNullOrWhiteSpace(updateAdminDto.Password))
                 admin.Password = BCrypt.Net.BCrypt.HashPassword(updateAdminDto.Password);
 
@@ -82,12 +92,16 @@ namespace MovieBooking.Application.Services
         public async Task DeleteAdminAsync(Guid adminId)
         {
             var admin = await AdminManagementRepository.GetUserByIdAsync(adminId);
-            if (admin.Role != UserRole.Admin)
-                throw new InvalidOperationException("User is not an admin");
 
-            var hasActiveTheatres = await AdminManagementRepository.AdminHasActiveTheatresAsync(adminId);
+            if (admin.Role != UserRole.Admin)
+                throw new InvalidOperationException(MessageStrings.UserIsNotAdmin);
+
+            var hasActiveTheatres =
+                await AdminManagementRepository.AdminHasActiveTheatresAsync(adminId);
+
             if (hasActiveTheatres)
-                throw new InvalidOperationException("Cannot delete admin with active theatres. Please reassign or delete theatres first.");
+                throw new InvalidOperationException(
+                    MessageStrings.CannotDeleteAdminWithActiveTheatres);
 
             await AdminManagementRepository.DeleteAdminAsync(admin);
         }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Repositories;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 using MovieBooking.Infrastructure.Persistence;
@@ -54,13 +55,16 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task DeleteAdminAsync(User admin)
         {
             if (await AdminHasActiveTheatresAsync(admin.UserId))
-                throw new InvalidOperationException("Cannot deactivate admin while active theatres exist.");
+                throw new InvalidOperationException(
+                    MessageStrings.CannotDeactivateAdminWithActiveTheatres);
+
             admin.IsActive = false;
             await DbContext.SaveChangesAsync();
         }
 
         /// <inheritdoc/>
         public async Task<bool> AdminHasActiveTheatresAsync(Guid adminId)
-            => await DbContext.Theatres.AnyAsync(t => t.CreatedBy == adminId && t.IsActive);
+            => await DbContext.Theatres
+                .AnyAsync(t => t.CreatedBy == adminId && t.IsActive);
     }
 }

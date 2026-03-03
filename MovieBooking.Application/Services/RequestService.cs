@@ -1,53 +1,58 @@
 ﻿using MovieBooking.Application.DTOs.Admin;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 
 namespace MovieBooking.Application.Services
 {
-    public class AdminService : IAdminService
+    public class RequestService : IRequestService
     {
-        private readonly IAdminRepository AdminRepository;
+        private readonly IRequestRepository AdminRepository;
 
-        public AdminService(IAdminRepository adminRepository)
+        public RequestService(IRequestRepository adminRepository)
         {
             AdminRepository = adminRepository;
         }
 
-        // ========== THEATRE REQUESTS ==========
+        // ===================== THEATRE REQUESTS =====================
 
-        public async Task<Guid> RequestTheatreAsync(CreateTheatreRequestDto createtheatreRequestDto, Guid adminId)
+        public async Task<Guid> RequestTheatreAsync(
+            CreateTheatreRequestDto createtheatreRequestDto,
+            Guid adminId)
         {
-            // Validate time slots
-            if (createtheatreRequestDto.TimeSlots == null || !createtheatreRequestDto.TimeSlots.Any())
-                throw new InvalidOperationException("At least one show timing must be configured");
+            if (createtheatreRequestDto.TimeSlots == null ||
+                !createtheatreRequestDto.TimeSlots.Any())
+                throw new InvalidOperationException(
+                    MessageStrings.AtLeastOneShowTimingRequired);
 
-            // Parse and validate time slots
             var parsedSlots = createtheatreRequestDto.TimeSlots.Select(ts =>
             {
                 if (!TimeOnly.TryParse(ts.StartTime, out var start))
-                    throw new InvalidOperationException($"Invalid start time: {ts.StartTime}");
+                    throw new InvalidOperationException(
+                        $"{MessageStrings.InvalidStartTime}: {ts.StartTime}");
 
                 if (!TimeOnly.TryParse(ts.EndTime, out var end))
-                    throw new InvalidOperationException($"Invalid end time: {ts.EndTime}");
+                    throw new InvalidOperationException(
+                        $"{MessageStrings.InvalidEndTime}: {ts.EndTime}");
 
                 if (end <= start)
-                    throw new InvalidOperationException("End time must be greater than start time");
+                    throw new InvalidOperationException(
+                        MessageStrings.EndTimeMustBeGreaterThanStartTime);
 
                 return new { Start = start, End = end };
             })
             .OrderBy(x => x.Start)
             .ToList();
 
-            // Check for overlapping slots
             for (int i = 0; i < parsedSlots.Count - 1; i++)
             {
                 if (parsedSlots[i].End > parsedSlots[i + 1].Start)
-                    throw new InvalidOperationException("Theatre show timings cannot overlap");
+                    throw new InvalidOperationException(
+                        MessageStrings.TheatreShowTimingsCannotOverlap);
             }
 
-            // Create theatre entity
             var theatre = new Theatre
             {
                 TheatreId = Guid.NewGuid(),
@@ -55,21 +60,19 @@ namespace MovieBooking.Application.Services
                 Location = createtheatreRequestDto.Location,
                 CreatedBy = adminId,
                 ApprovalStatus = ApprovalStatus.PENDING,
-                IsActive = false, // Will be activated upon approval
+                IsActive = false,
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Create time slots
             var timeSlots = parsedSlots.Select(p => new TheatreTimeSlot
             {
                 TheatreTimeSlotId = Guid.NewGuid(),
                 TheatreId = theatre.TheatreId,
                 StartTime = p.Start,
                 EndTime = p.End,
-                IsActive = true 
+                IsActive = true
             }).ToList();
 
-            // Create admin request
             var request = new AdminRequest
             {
                 AdminRequestId = Guid.NewGuid(),
@@ -79,11 +82,12 @@ namespace MovieBooking.Application.Services
                 RequestedAt = DateTime.UtcNow
             };
 
-            // Save to database
-            return await AdminRepository.CreateTheatreRequestAsync(theatre, timeSlots, request);
+            return await AdminRepository.CreateTheatreRequestAsync(
+                theatre, timeSlots, request);
         }
 
-        public async Task<List<TheatreRequestResponseDto>> GetMyTheatreRequestsAsync(Guid adminId)
+        public async Task<List<TheatreRequestResponseDto>>
+            GetMyTheatreRequestsAsync(Guid adminId)
         {
             var theatres = await AdminRepository.GetTheatresByAdminAsync(adminId);
 
@@ -102,7 +106,8 @@ namespace MovieBooking.Application.Services
             }).ToList();
         }
 
-        public async Task<List<TheatreRequestResponseDto>> GetMyApprovedTheatresAsync(Guid adminId)
+        public async Task<List<TheatreRequestResponseDto>>
+            GetMyApprovedTheatresAsync(Guid adminId)
         {
             var theatres = await AdminRepository.GetTheatresByAdminAsync(adminId);
 
@@ -123,33 +128,42 @@ namespace MovieBooking.Application.Services
                 }).ToList();
         }
 
-        // ========== SCREEN REQUESTS ==========
+        // ===================== SCREEN REQUESTS =====================
 
-
-        public async Task<Guid> RequestScreenAsync(CreateScreenRequestDto createScreenRequestDto, Guid adminId)
+        public async Task<Guid> RequestScreenAsync(
+            CreateScreenRequestDto createScreenRequestDto,
+            Guid adminId)
         {
-            // Verify the theatre belongs to this admin and is approved
-            var theatre = await AdminRepository.GetTheatreByIdAsync(createScreenRequestDto.TheatreId);
+            var theatre = await AdminRepository
+                .GetTheatreByIdAsync(createScreenRequestDto.TheatreId);
 
             if (theatre.CreatedBy != adminId)
-                throw new UnauthorizedAccessException("You can only add screens to your own theatres");
+                throw new UnauthorizedAccessException(
+                    MessageStrings.CanOnlyAddScreensToOwnTheatres);
 
             if (theatre.ApprovalStatus != ApprovalStatus.APPROVED)
-                throw new InvalidOperationException("Cannot add screen to a theatre that is not approved");
+                throw new InvalidOperationException(
+                    MessageStrings.CannotAddScreenToUnapprovedTheatre);
 
-            // Validate seat rows
-            if (createScreenRequestDto.SeatRows == null || !createScreenRequestDto.SeatRows.Any())
-                throw new InvalidOperationException("Seat layout is required");
+            if (createScreenRequestDto.SeatRows == null ||
+                !createScreenRequestDto.SeatRows.Any())
+                throw new InvalidOperationException(
+                    MessageStrings.SeatLayoutIsRequired);
 
-            // Parse SeatLayoutType
-            if (!Enum.TryParse<SeatLayoutType>(createScreenRequestDto.SeatLayoutType, true, out var layoutType))
-                throw new InvalidOperationException("Invalid seat layout type");
+            if (!Enum.TryParse<SeatLayoutType>(
+                    createScreenRequestDto.SeatLayoutType,
+                    true,
+                    out var layoutType))
+                throw new InvalidOperationException(
+                    MessageStrings.InvalidSeatLayoutType);
 
-            // Check for duplicate rows
-            if (createScreenRequestDto.SeatRows.Select(r => r.SeatRow).Distinct().Count() != createScreenRequestDto.SeatRows.Count)
-                throw new InvalidOperationException("Duplicate seat rows are not allowed");
+            if (createScreenRequestDto.SeatRows
+                    .Select(r => r.SeatRow)
+                    .Distinct()
+                    .Count() != createScreenRequestDto.SeatRows.Count)
+                throw new InvalidOperationException(
+                    MessageStrings.DuplicateSeatRowsNotAllowed);
 
-            // Create screen entity
             var screen = new Screen
             {
                 ScreenId = Guid.NewGuid(),
@@ -161,12 +175,10 @@ namespace MovieBooking.Application.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Create seats
             var seats = new List<Seat>();
+
             foreach (var row in createScreenRequestDto.SeatRows)
             {
-                var seatTypeEnum = row.SeatType;
-
                 for (int col = 1; col <= row.SeatCount; col++)
                 {
                     seats.Add(new Seat
@@ -175,14 +187,13 @@ namespace MovieBooking.Application.Services
                         ScreenId = screen.ScreenId,
                         SeatRow = row.SeatRow,
                         SeatColumn = col,
-                        SeatType = seatTypeEnum,
+                        SeatType = row.SeatType,
                         PriceMultiplier = row.PriceMultiplier,
                         IsActive = false
                     });
                 }
             }
 
-            // Create admin request
             var request = new AdminRequest
             {
                 AdminRequestId = Guid.NewGuid(),
@@ -192,11 +203,12 @@ namespace MovieBooking.Application.Services
                 RequestedAt = DateTime.UtcNow
             };
 
-            // Save to database
-            return await AdminRepository.CreateScreenRequestAsync(screen, seats, request);
+            return await AdminRepository
+                .CreateScreenRequestAsync(screen, seats, request);
         }
 
-        public async Task<List<ScreenRequestResponseDto>> GetMyScreenRequestsAsync(Guid adminId)
+        public async Task<List<ScreenRequestResponseDto>>
+            GetMyScreenRequestsAsync(Guid adminId)
         {
             var screens = await AdminRepository.GetScreensByAdminAsync(adminId);
 
@@ -211,7 +223,8 @@ namespace MovieBooking.Application.Services
             }).ToList();
         }
 
-        public async Task<List<ScreenRequestResponseDto>> GetMyApprovedScreensAsync(Guid adminId)
+        public async Task<List<ScreenRequestResponseDto>>
+            GetMyApprovedScreensAsync(Guid adminId)
         {
             var screens = await AdminRepository.GetScreensByAdminAsync(adminId);
 
@@ -228,7 +241,8 @@ namespace MovieBooking.Application.Services
                 }).ToList();
         }
 
-        public async Task<List<TheatreRequestResponseDto>> GetMyTheatresForScreenAsync(Guid adminId)
+        public async Task<List<TheatreRequestResponseDto>>
+            GetMyTheatresForScreenAsync(Guid adminId)
         {
             var theatres = await AdminRepository.GetTheatresByAdminAsync(adminId);
 

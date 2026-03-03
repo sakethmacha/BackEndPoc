@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.Interfaces.Repositories;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 using MovieBooking.Infrastructure.Persistence;
@@ -33,7 +34,7 @@ namespace MovieBooking.Infrastructure.Repositories
                 .Include(s => s.Seats)
                 .FirstOrDefaultAsync(s => s.ScreenId == screenId);
             if (screen == null)
-                throw new InvalidOperationException("Screen not found");
+                throw new InvalidOperationException(MessageStrings.ScreenNotFound);
             return screen;
         }
 
@@ -62,7 +63,7 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task DeleteScreenAsync(Screen screen)
         {
             if (await ScreenHasActiveShowTimesAsync(screen.ScreenId))
-                throw new InvalidOperationException("Cannot deactivate screen while active showtimes exist.");
+                throw new InvalidOperationException(MessageStrings.CannotDeactivateScreenWithActiveShowTimes);
             screen.IsActive = false;
             foreach (var seat in screen.Seats)
                 seat.IsActive = false;

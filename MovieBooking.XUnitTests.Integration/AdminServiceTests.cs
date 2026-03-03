@@ -7,13 +7,13 @@ namespace MovieBooking.XUnitTests.Integration
 {
     public class AdminServiceTests
     {
-        private readonly Mock<IAdminRepository> _repoMock;
-        private readonly AdminService _service;
+        private readonly Mock<IRequestRepository> _repoMock;
+        private readonly RequestService _service;
 
         public AdminServiceTests()
         {
-            _repoMock = new Mock<IAdminRepository>();
-            _service = new AdminService(_repoMock.Object);
+            _repoMock = new Mock<IRequestRepository>();
+            _service = new RequestService(_repoMock.Object);
         }
         [Fact]
         public async Task RequestTheatreAsync_NoTimeSlots_ThrowsException()

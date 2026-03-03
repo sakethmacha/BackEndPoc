@@ -10,13 +10,13 @@ namespace MovieBooking.XUnitTests.Integration
 {
     public class AdminControllerTests
     {
-        private readonly Mock<IAdminService> ServiceMock;
-        private readonly AdminController AdminController;
+        private readonly Mock<IRequestService> ServiceMock;
+        private readonly RequestController AdminController;
 
         public AdminControllerTests()
         {
-            ServiceMock = new Mock<IAdminService>();
-            AdminController = new AdminController(ServiceMock.Object);
+            ServiceMock = new Mock<IRequestService>();
+            AdminController = new RequestController(ServiceMock.Object);
 
             SetAdminUser(Guid.NewGuid());
         }

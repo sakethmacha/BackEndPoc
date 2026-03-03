@@ -1,6 +1,7 @@
 ﻿using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 
@@ -23,6 +24,7 @@ namespace MovieBooking.Application.Services
         public async Task<List<TheatreResponseDto>> GetTheatresAsync()
         {
             var theatres = await TheatreRepository.GetTheatresAsync();
+
             return theatres.Select(t => new TheatreResponseDto
             {
                 TheatreId = t.TheatreId,
@@ -36,6 +38,7 @@ namespace MovieBooking.Application.Services
         public async Task<TheatreResponseDto> GetTheatreByIdAsync(Guid theatreId)
         {
             var theatre = await TheatreRepository.GetTheatreByIdAsync(theatreId);
+
             return new TheatreResponseDto
             {
                 TheatreId = theatre.TheatreId,
@@ -53,26 +56,39 @@ namespace MovieBooking.Application.Services
         }
 
         /// <inheritdoc/>
-        public async Task AddTheatreAsync(CreateTheatreDto createTheatreDto, Guid superAdminId)
+        public async Task AddTheatreAsync(
+            CreateTheatreDto createTheatreDto,
+            Guid superAdminId)
         {
-            if (createTheatreDto.TimeSlots == null || !createTheatreDto.TimeSlots.Any())
-                throw new InvalidOperationException("At least one show timing must be configured");
+            if (createTheatreDto.TimeSlots == null ||
+                !createTheatreDto.TimeSlots.Any())
+                throw new InvalidOperationException(
+                    MessageStrings.AtLeastOneShowTimingRequired);
 
             var parsedSlots = createTheatreDto.TimeSlots.Select(ts =>
             {
                 if (!TimeOnly.TryParse(ts.StartTime, out var start))
-                    throw new InvalidOperationException($"Invalid start time: {ts.StartTime}");
+                    throw new InvalidOperationException(
+                        $"{MessageStrings.InvalidStartTime}: {ts.StartTime}");
+
                 if (!TimeOnly.TryParse(ts.EndTime, out var end))
-                    throw new InvalidOperationException($"Invalid end time: {ts.EndTime}");
+                    throw new InvalidOperationException(
+                        $"{MessageStrings.InvalidEndTime}: {ts.EndTime}");
+
                 if (end <= start)
-                    throw new InvalidOperationException("End time must be greater than start time");
+                    throw new InvalidOperationException(
+                        MessageStrings.EndTimeMustBeGreaterThanStartTime);
+
                 return new { Start = start, End = end };
-            }).OrderBy(x => x.Start).ToList();
+            })
+            .OrderBy(x => x.Start)
+            .ToList();
 
             for (int i = 0; i < parsedSlots.Count - 1; i++)
             {
                 if (parsedSlots[i].End > parsedSlots[i + 1].Start)
-                    throw new InvalidOperationException("Theatre show timings cannot overlap");
+                    throw new InvalidOperationException(
+                        MessageStrings.TheatreShowTimingsCannotOverlap);
             }
 
             var theatre = new Theatre
@@ -95,32 +111,48 @@ namespace MovieBooking.Application.Services
                 IsActive = true
             }).ToList();
 
-            await TheatreRepository.AddTheatreWithTimeSlotsAsync(theatre, timeSlots);
+            await TheatreRepository.AddTheatreWithTimeSlotsAsync(
+                theatre,
+                timeSlots);
         }
 
         /// <inheritdoc/>
-        public async Task UpdateTheatreAsync(Guid theatreId, UpdateTheatreDto updateTheatreDto)
+        public async Task UpdateTheatreAsync(
+            Guid theatreId,
+            UpdateTheatreDto updateTheatreDto)
         {
-            if (updateTheatreDto.TimeSlots == null || !updateTheatreDto.TimeSlots.Any())
-                throw new InvalidOperationException("At least one show timing must be configured");
+            if (updateTheatreDto.TimeSlots == null ||
+                !updateTheatreDto.TimeSlots.Any())
+                throw new InvalidOperationException(
+                    MessageStrings.AtLeastOneShowTimingRequired);
 
-            var theatre = await TheatreRepository.GetTheatreByIdAsync(theatreId);
+            var theatre =
+                await TheatreRepository.GetTheatreByIdAsync(theatreId);
 
             var parsedSlots = updateTheatreDto.TimeSlots.Select(ts =>
             {
                 if (!TimeOnly.TryParse(ts.StartTime, out var start))
-                    throw new InvalidOperationException($"Invalid start time: {ts.StartTime}");
+                    throw new InvalidOperationException(
+                        $"{MessageStrings.InvalidStartTime}: {ts.StartTime}");
+
                 if (!TimeOnly.TryParse(ts.EndTime, out var end))
-                    throw new InvalidOperationException($"Invalid end time: {ts.EndTime}");
+                    throw new InvalidOperationException(
+                        $"{MessageStrings.InvalidEndTime}: {ts.EndTime}");
+
                 if (end <= start)
-                    throw new InvalidOperationException("End time must be greater than start time");
+                    throw new InvalidOperationException(
+                        MessageStrings.EndTimeMustBeGreaterThanStartTime);
+
                 return new { Start = start, End = end };
-            }).OrderBy(x => x.Start).ToList();
+            })
+            .OrderBy(x => x.Start)
+            .ToList();
 
             for (int i = 0; i < parsedSlots.Count - 1; i++)
             {
                 if (parsedSlots[i].End > parsedSlots[i + 1].Start)
-                    throw new InvalidOperationException("Theatre show timings cannot overlap");
+                    throw new InvalidOperationException(
+                        MessageStrings.TheatreShowTimingsCannotOverlap);
             }
 
             theatre.Name = updateTheatreDto.Name;
@@ -137,16 +169,24 @@ namespace MovieBooking.Application.Services
                 IsActive = true
             }).ToList();
 
-            await TheatreRepository.AddTheatreWithTimeSlotsAsync(theatre, newTimeSlots);
+            await TheatreRepository.AddTheatreWithTimeSlotsAsync(
+                theatre,
+                newTimeSlots);
         }
 
         /// <inheritdoc/>
         public async Task DeleteTheatreAsync(Guid theatreId)
         {
-            var theatre = await TheatreRepository.GetTheatreByIdAsync(theatreId);
-            var hasActiveScreens = await TheatreRepository.TheatreHasActiveScreensAsync(theatreId);
+            var theatre =
+                await TheatreRepository.GetTheatreByIdAsync(theatreId);
+
+            var hasActiveScreens =
+                await TheatreRepository.TheatreHasActiveScreensAsync(theatreId);
+
             if (hasActiveScreens)
-                throw new InvalidOperationException("Cannot delete theatre with active screens. Please deactivate or delete screens first.");
+                throw new InvalidOperationException(
+                    MessageStrings.CannotDeleteTheatreWithActiveScreens);
+
             await TheatreRepository.DeleteTheatreTimeSlotsAsync(theatreId);
             await TheatreRepository.DeleteTheatreAsync(theatre);
         }

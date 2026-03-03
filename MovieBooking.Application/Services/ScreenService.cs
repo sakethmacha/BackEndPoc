@@ -1,25 +1,21 @@
 ﻿using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 
 namespace MovieBooking.Application.Services
 {
-    /// <summary>
-    /// Service implementation for screen management operations
-    /// </summary>
     public class ScreenService : IScreenService
     {
         private readonly IScreenRepository ScreenRepository;
 
-        /// <summary>Initializes a new instance of ScreenService</summary>
         public ScreenService(IScreenRepository screenRepository)
         {
             ScreenRepository = screenRepository;
         }
 
-        /// <inheritdoc/>
         public async Task<List<ScreenResponseDto>> GetScreensAsync()
         {
             var screens = await ScreenRepository.GetScreensAsync();
@@ -32,7 +28,6 @@ namespace MovieBooking.Application.Services
             }).ToList();
         }
 
-        /// <inheritdoc/>
         public async Task<CreateScreenRequest> GetScreenByIdAsync(Guid screenId)
         {
             var screen = await ScreenRepository.GetScreenByIdAsync(screenId);
@@ -53,12 +48,11 @@ namespace MovieBooking.Application.Services
             {
                 TheatreId = screen.TheatreId,
                 ScreenName = screen.ScreenName,
-                SeatLayoutType = screen.SeatLayoutType.ToString(),
+                SeatLayoutType = screen.SeatLayoutType,
                 SeatRows = seatRows
             };
         }
 
-        /// <inheritdoc/>
         public async Task<List<ScreenResponseDto>> GetScreensByTheatreAsync(Guid theatreId)
         {
             var screens = await ScreenRepository.GetByTheatreIdAsync(theatreId);
@@ -71,20 +65,19 @@ namespace MovieBooking.Application.Services
             }).ToList();
         }
 
-        /// <inheritdoc/>
         public async Task AddScreenAsync(CreateScreenRequest createScreenRequest)
         {
             if (createScreenRequest.SeatRows == null || !createScreenRequest.SeatRows.Any())
-                throw new InvalidOperationException("Seat layout is required");
+                throw new InvalidOperationException(MessageStrings.SeatLayoutIsRequired);
 
-            if (!Enum.TryParse<SeatLayoutType>(createScreenRequest.SeatLayoutType, true, out var layoutType))
-                throw new InvalidOperationException("Invalid seat layout type");
+            //if (!Enum.TryParse<SeatLayoutType>(createScreenRequest.SeatLayoutType, true, out var layoutType))
+            //    throw new InvalidOperationException(MessageStrings.InvalidSeatLayoutType);
 
             var seatRows = new List<CreateSeatRowDto>();
             foreach (var row in createScreenRequest.SeatRows)
             {
                 if (!Enum.TryParse<SeatType>(row.SeatType, true, out var seatType))
-                    throw new InvalidOperationException($"Invalid seat type: {row.SeatType}");
+                    throw new InvalidOperationException($"{MessageStrings.InvalidSeatType}: {row.SeatType}");
 
                 seatRows.Add(new CreateSeatRowDto
                 {
@@ -100,7 +93,7 @@ namespace MovieBooking.Application.Services
                 TheatreId = createScreenRequest.TheatreId,
                 ScreenName = createScreenRequest.ScreenName,
                 IsActive = true,
-                SeatLayoutType = layoutType,
+                SeatLayoutType = SeatLayoutType.STANDARD,
                 SeatRows = seatRows
             };
 
@@ -110,7 +103,7 @@ namespace MovieBooking.Application.Services
         private async Task AddScreenInternalAsync(CreateScreenDto createScreenDto)
         {
             if (createScreenDto.SeatRows.Select(r => r.SeatRow).Distinct().Count() != createScreenDto.SeatRows.Count)
-                throw new InvalidOperationException("Duplicate seat rows are not allowed");
+                throw new InvalidOperationException(MessageStrings.DuplicateSeatRowsNotAllowed);
 
             var screen = new Screen
             {
@@ -144,26 +137,25 @@ namespace MovieBooking.Application.Services
             await ScreenRepository.AddSeatsAsync(seats);
         }
 
-        /// <inheritdoc/>
         public async Task UpdateScreenAsync(Guid screenId, UpdateScreenDto updateScreenDto)
         {
             var screen = await ScreenRepository.GetScreenByIdAsync(screenId);
 
             var hasActiveShowTimes = await ScreenRepository.ScreenHasActiveShowTimesAsync(screenId);
             if (hasActiveShowTimes)
-                throw new InvalidOperationException("Cannot update screen with active showtimes. Please deactivate or delete showtimes first.");
+                throw new InvalidOperationException(MessageStrings.CannotUpdateScreenWithActiveShowTimes);
 
             if (updateScreenDto.SeatRows == null || !updateScreenDto.SeatRows.Any())
-                throw new InvalidOperationException("Seat layout is required");
+                throw new InvalidOperationException(MessageStrings.SeatLayoutIsRequired);
 
             if (!Enum.TryParse<SeatLayoutType>(updateScreenDto.SeatLayoutType, true, out var layoutType))
-                throw new InvalidOperationException("Invalid seat layout type");
+                throw new InvalidOperationException(MessageStrings.InvalidSeatLayoutType);
 
             var seatRows = new List<CreateSeatRowDto>();
             foreach (var row in updateScreenDto.SeatRows)
             {
                 if (!Enum.TryParse<SeatType>(row.SeatType, true, out var seatType))
-                    throw new InvalidOperationException($"Invalid seat type: {row.SeatType}");
+                    throw new InvalidOperationException($"{MessageStrings.InvalidSeatType}: {row.SeatType}");
 
                 seatRows.Add(new CreateSeatRowDto
                 {
@@ -175,7 +167,7 @@ namespace MovieBooking.Application.Services
             }
 
             if (seatRows.Select(r => r.SeatRow).Distinct().Count() != seatRows.Count)
-                throw new InvalidOperationException("Duplicate seat rows are not allowed");
+                throw new InvalidOperationException(MessageStrings.DuplicateSeatRowsNotAllowed);
 
             screen.ScreenName = updateScreenDto.ScreenName;
             screen.SeatLayoutType = layoutType;
@@ -204,13 +196,14 @@ namespace MovieBooking.Application.Services
             await ScreenRepository.AddSeatsAsync(seats);
         }
 
-        /// <inheritdoc/>
         public async Task DeleteScreenAsync(Guid screenId)
         {
             var screen = await ScreenRepository.GetScreenByIdAsync(screenId);
+
             var hasActiveShowTimes = await ScreenRepository.ScreenHasActiveShowTimesAsync(screenId);
             if (hasActiveShowTimes)
-                throw new InvalidOperationException("Cannot delete screen with active showtimes. Please deactivate or delete showtimes first.");
+                throw new InvalidOperationException(MessageStrings.CannotDeleteScreenWithActiveShowTimes);
+
             await ScreenRepository.DeleteScreenAsync(screen);
         }
     }

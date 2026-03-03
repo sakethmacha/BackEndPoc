@@ -1,6 +1,7 @@
 ﻿using MovieBooking.Application.DTOs.SuperAdmin;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 
@@ -93,7 +94,7 @@ namespace MovieBooking.Application.Services
             var movie = await MovieRepository.GetMovieByIdAsync(movieId);
             var hasActiveShowTimes = await MovieRepository.MovieHasActiveShowTimesAsync(movieId);
             if (hasActiveShowTimes)
-                throw new InvalidOperationException("Cannot delete movie with active showtimes. Please deactivate or delete showtimes first.");
+                throw new InvalidOperationException(MessageStrings.CannotDelete);
             await MovieRepository.DeleteMovieAsync(movie);
         }
     }

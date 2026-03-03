@@ -1,6 +1,7 @@
 ﻿using MovieBooking.Application.DTOs.Booking;
 using MovieBooking.Application.Interfaces.Repositories;
 using MovieBooking.Application.Interfaces.Services;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 
@@ -52,11 +53,10 @@ namespace MovieBooking.Application.Services
                         StartTime = st.StartTime,
                         EndTime = st.EndTime,
                         BasePrice = st.BasePrice,
-                        AvailableSeats = 0 // Will be calculated
+                        AvailableSeats = 0
                     }).ToList()
                 }).ToList();
 
-            // Calculate available seats for each show
             foreach (var theatre in grouped)
             {
                 foreach (var show in theatre.Shows)
@@ -114,31 +114,27 @@ namespace MovieBooking.Application.Services
             };
         }
 
-        public async Task<LockSeatsResponseDto> LockSeatsAsync(Guid userId, LockSeatsRequestDto lockSeatsRequestDto)
+        public async Task<LockSeatsResponseDto> LockSeatsAsync(Guid userId, LockSeatsRequestDto request)
         {
-            // Validate seats are available
-            // var available = await _bookingRepository.AreSeatsAvailableAsync(request.ShowTimeId, request.SeatIds);
             var activeLocks =
-         await BookingRepository.GetActiveSeatLocksForShowAsync(
-             lockSeatsRequestDto.ShowTimeId);
-            if (activeLocks.Any(sl => lockSeatsRequestDto.SeatIds.Contains(sl.SeatId)))
+                await BookingRepository.GetActiveSeatLocksForShowAsync(request.ShowTimeId);
+
+            if (activeLocks.Any(sl => request.SeatIds.Contains(sl.SeatId)))
             {
                 return new LockSeatsResponseDto
                 {
                     Success = false,
-                    Message = "One or more seats are no longer available"
+                    Message = MessageStrings.SeatsNoLongerAvailable
                 };
             }
 
-            // Lock the seats
-            var locks = await BookingRepository.LockSeatsAsync(userId, lockSeatsRequestDto.ShowTimeId, lockSeatsRequestDto.SeatIds);
+            var locks = await BookingRepository.LockSeatsAsync(userId, request.ShowTimeId, request.SeatIds);
 
-            // Get seat details for response
-            var showTime = await BookingRepository.GetShowTimeByIdAsync(lockSeatsRequestDto.ShowTimeId);
+            var showTime = await BookingRepository.GetShowTimeByIdAsync(request.ShowTimeId);
             var seats = await BookingRepository.GetSeatsByScreenAsync(showTime.ScreenId);
 
             var lockedSeats = seats
-                .Where(s => lockSeatsRequestDto.SeatIds.Contains(s.SeatId))
+                .Where(s => request.SeatIds.Contains(s.SeatId))
                 .Select(s => new LockedSeatDto
                 {
                     SeatId = s.SeatId,
@@ -149,7 +145,7 @@ namespace MovieBooking.Application.Services
             return new LockSeatsResponseDto
             {
                 Success = true,
-                Message = "Seats locked successfully",
+                Message = MessageStrings.SeatsLockedSuccessfully,
                 ExpiresAt = locks.First().ExpiresAt,
                 LockedSeats = lockedSeats
             };
@@ -157,39 +153,26 @@ namespace MovieBooking.Application.Services
 
         // ========== BOOKING & PAYMENT ==========
 
-        public async Task<BookingConfirmationDto> CreateBookingAsync(Guid userId, CreateBookingRequestDto createBookingRequestDto)
+        public async Task<BookingConfirmationDto> CreateBookingAsync(Guid userId, CreateBookingRequestDto request)
         {
-
-            // Verify seats are still available (locked by this user)
-            //var available = await _bookingRepository.AreSeatsAvailableAsync(request.ShowTimeId, request.SeatIds);
-
-            //if (!available)
-            //    throw new InvalidOperationException("One or more seats are no longer available");
-
             var canBook = await BookingRepository
-    .CanUserBookSeatsAsync(
-        createBookingRequestDto.ShowTimeId,
-        createBookingRequestDto.SeatIds,
-        userId);
+                .CanUserBookSeatsAsync(request.ShowTimeId, request.SeatIds, userId);
 
             if (!canBook)
-            {
                 throw new InvalidOperationException(
-                    "You can only book seats locked by you");
-            }
+                    MessageStrings.CanOnlyBookLockedSeats);
 
-            var showTime = await BookingRepository.GetShowTimeByIdAsync(createBookingRequestDto.ShowTimeId);
+            var showTime = await BookingRepository.GetShowTimeByIdAsync(request.ShowTimeId);
             var seats = await BookingRepository.GetSeatsByScreenAsync(showTime.ScreenId);
 
-            var selectedSeats = seats.Where(s => createBookingRequestDto.SeatIds.Contains(s.SeatId)).ToList();
+            var selectedSeats = seats.Where(s => request.SeatIds.Contains(s.SeatId)).ToList();
             var totalAmount = selectedSeats.Sum(s => showTime.BasePrice * s.PriceMultiplier);
 
-            // Create booking
             var booking = new Booking
             {
                 BookingId = Guid.NewGuid(),
                 UserId = userId,
-                ShowTimeId = createBookingRequestDto.ShowTimeId,
+                ShowTimeId = request.ShowTimeId,
                 TotalAmount = totalAmount,
                 Status = BookingStatus.PENDING,
                 CreatedAt = DateTime.UtcNow
@@ -197,121 +180,70 @@ namespace MovieBooking.Application.Services
 
             await BookingRepository.CreateBookingAsync(booking);
 
-            //Create booking seats
-           var bookingSeats = selectedSeats.Select(s => new BookingSeat
-           {
-               BookingSeatId = Guid.NewGuid(),
-               BookingId = booking.BookingId,
-               SeatId = s.SeatId,
-               ShowTimeId = createBookingRequestDto.ShowTimeId,
-               SeatPrice = showTime.BasePrice * s.PriceMultiplier,
-               Status = SeatLockStatus.LOCKED
-           }).ToList();
+            var bookingSeats = selectedSeats.Select(s => new BookingSeat
+            {
+                BookingSeatId = Guid.NewGuid(),
+                BookingId = booking.BookingId,
+                SeatId = s.SeatId,
+                ShowTimeId = request.ShowTimeId,
+                SeatPrice = showTime.BasePrice * s.PriceMultiplier,
+                Status = SeatLockStatus.LOCKED
+            }).ToList();
 
             await BookingRepository.CreateBookingSeatsAsync(bookingSeats);
 
-            // Return confirmation
             return new BookingConfirmationDto
             {
                 BookingId = booking.BookingId,
                 BookingReference = booking.BookingId.ToString().Substring(0, 8).ToUpper(),
                 TotalAmount = totalAmount,
-                Status = BookingStatus.PENDING.ToString(),//
-                CreatedAt = booking.CreatedAt,
-                Movie = new MovieDetailsDto
-                {
-                    Title = showTime.Movie.Title,
-                    Language = showTime.Language.Name,
-                    DurationMinutes = showTime.Movie.DurationMinutes
-                },
-                Theatre = new TheatreDetailsDto
-                {
-                    Name = showTime.Theatre.Name,
-                    Location = showTime.Theatre.Location,
-                    ScreenName = showTime.Screen.ScreenName,
-                    ShowTime = showTime.StartTime
-                },
-                Seats = selectedSeats.Select(s => new BookedSeatDto
-                {
-                    SeatNumber = $"{s.SeatRow}{s.SeatColumn}",
-                    SeatType = s.SeatType.ToString(),
-                    Price = showTime.BasePrice * s.PriceMultiplier
-                }).ToList()
+                Status = BookingStatus.PENDING.ToString(),
+                CreatedAt = booking.CreatedAt
             };
         }
 
-        public async Task<PaymentResponseDto> ProcessPaymentAsync(Guid userId,ProcessPaymentRequestDto processPaymentRequestDto)
+        public async Task<PaymentResponseDto> ProcessPaymentAsync(Guid userId, ProcessPaymentRequestDto request)
         {
-            var booking = await BookingRepository
-                .GetBookingByIdAsync(processPaymentRequestDto.BookingId);
+            var booking = await BookingRepository.GetBookingByIdAsync(request.BookingId);
 
-            // 1️⃣ Verify booking belongs to user
             if (booking.UserId != userId)
                 throw new UnauthorizedAccessException(
-                    "Unauthorized access to booking");
+                    MessageStrings.UnauthorizedBookingAccess);
 
-            // 2️⃣ Verify booking is pending
             if (booking.Status != BookingStatus.PENDING)
                 throw new InvalidOperationException(
-                    "Booking is not in pending status");
+                    MessageStrings.BookingNotPending);
 
-            // 3️⃣ Create payment record
             var payment = new Payment
             {
                 PaymentId = Guid.NewGuid(),
                 BookingId = booking.BookingId,
                 Amount = booking.TotalAmount,
-                PaymentMethod = processPaymentRequestDto.PaymentMethod,
-                PaymentStatus = PaymentStatus.PENDING,
+                PaymentMethod = request.PaymentMethod,
+                PaymentStatus = PaymentStatus.SUCCESS,
                 TransactionId = Guid.NewGuid().ToString(),
-                PaymentGateway = processPaymentRequestDto.PaymentGateway,
-                CreatedAt = DateTime.UtcNow
+                PaymentGateway = request.PaymentGateway,
+                CreatedAt = DateTime.UtcNow,
+                PaidAt = DateTime.UtcNow
             };
 
             await BookingRepository.CreatePaymentAsync(payment);
 
-            // 4️⃣ Simulate payment success
-            payment.PaymentStatus = PaymentStatus.SUCCESS;
-            payment.PaidAt = DateTime.UtcNow;
-            await BookingRepository.UpdatePaymentAsync(payment);
-
-            // 5️⃣ Confirm booking
             booking.Status = BookingStatus.CONFIRMED;
             booking.BookingTime = DateTime.UtcNow;
             booking.PaymentId = payment.PaymentId;
             await BookingRepository.UpdateBookingAsync(booking);
 
-            // 6️⃣ Get locked seats for this booking
-            var seatLocks = await BookingRepository
-                .GetActiveSeatLocksForShowAsync(booking.ShowTimeId);
-
-            var userSeatLocks = seatLocks
-                .Where(sl =>
-                    sl.UserId == userId &&
-                    sl.Status == SeatLockStatus.LOCKED)
-                .ToList();
-
-            var seatIds = userSeatLocks.Select(sl => sl.SeatId).ToList();
-
-           
-            // 8️⃣ Convert seat locks (expire them)
-            await BookingRepository.ConvertLocksToBookingAsync(
-                userId,
-                booking.ShowTimeId,
-                seatIds);
-
-            // 9️⃣ Send notification
             await BookingRepository.AddNotificationLogAsync(new NotificationLog
             {
                 NotificationLogId = Guid.NewGuid(),
                 UserId = userId,
                 Type = NotificationType.EMAIL,
-                Message = $"Booking confirmed for {booking.ShowTime.Movie.Title}",
+                Message = $"{MessageStrings.BookingConfirmedFor} {booking.ShowTime.Movie.Title}",
                 SentAt = DateTime.UtcNow,
                 Status = NotificationStatus.SENT
             });
 
-            // 🔟 Return response
             return new PaymentResponseDto
             {
                 PaymentId = payment.PaymentId,
@@ -319,8 +251,50 @@ namespace MovieBooking.Application.Services
                 Status = payment.PaymentStatus.ToString(),
                 Amount = payment.Amount,
                 PaidAt = payment.PaidAt,
-                Message = "Payment successful"
+                Message = MessageStrings.PaymentSuccessful
             };
+        }
+
+        public async Task CancelBookingAsync(Guid userId, CancelBookingRequestDto request)
+        {
+            var booking = await BookingRepository.GetBookingByIdAsync(request.BookingId);
+
+            if (booking.UserId != userId)
+                throw new UnauthorizedAccessException(
+                    MessageStrings.UnauthorizedBookingAccess);
+
+            if (booking.Status != BookingStatus.CONFIRMED)
+                throw new InvalidOperationException(
+                    MessageStrings.OnlyConfirmedBookingsCanBeCancelled);
+
+            if (booking.ShowTime.StartTime <= DateTime.UtcNow)
+                throw new InvalidOperationException(
+                    MessageStrings.CannotCancelPastShow);
+
+            booking.Status = BookingStatus.CANCELLED;
+            await BookingRepository.UpdateBookingAsync(booking);
+
+            if (booking.PaymentId.HasValue)
+            {
+                var payment = await BookingRepository.GetPaymentByIdAsync(booking.PaymentId.Value);
+                payment.PaymentStatus = PaymentStatus.REFUNDED;
+                await BookingRepository.UpdatePaymentAsync(payment);
+            }
+
+            await BookingRepository.AddNotificationLogAsync(new NotificationLog
+            {
+                NotificationLogId = Guid.NewGuid(),
+                UserId = userId,
+                Type = NotificationType.EMAIL,
+                Message = $"{MessageStrings.BookingCancelledFor} {booking.ShowTime.Movie.Title}",
+                SentAt = DateTime.UtcNow,
+                Status = NotificationStatus.SENT
+            });
+        }
+
+        public async Task ReleaseExpiredSeatLocksAsync()
+        {
+            await BookingRepository.ReleaseExpiredLocksAsync();
         }
 
         // ========== USER BOOKINGS ==========
@@ -338,20 +312,23 @@ namespace MovieBooking.Application.Services
                 ScreenName = b.ShowTime.Screen.ScreenName,
                 ShowTime = b.ShowTime.StartTime,
                 SeatCount = b.BookingSeats.Count,
-                SeatNumbers = string.Join(", ", b.BookingSeats.Select(bs => $"{bs.Seat.SeatRow}{bs.Seat.SeatColumn}")),
+                SeatNumbers = string.Join(", ",
+                    b.BookingSeats.Select(bs =>
+                        $"{bs.Seat.SeatRow}{bs.Seat.SeatColumn}")),
                 TotalAmount = b.TotalAmount,
                 Status = b.Status.ToString(),
                 BookingDate = b.CreatedAt
             }).ToList();
         }
 
+
         public async Task<BookingConfirmationDto> GetBookingDetailsAsync(Guid userId, Guid bookingId)
         {
             var booking = await BookingRepository.GetBookingByIdAsync(bookingId);
 
-            // Verify booking belongs to user
             if (booking.UserId != userId)
-                throw new UnauthorizedAccessException("Unauthorized access to booking");
+                throw new UnauthorizedAccessException(
+                    MessageStrings.UnauthorizedBookingAccess);
 
             return new BookingConfirmationDto
             {
@@ -380,53 +357,6 @@ namespace MovieBooking.Application.Services
                     Price = bs.SeatPrice
                 }).ToList()
             };
-        }
-
-        public async Task CancelBookingAsync(Guid userId, CancelBookingRequestDto cancelBookingRequestDto)
-        {
-            var booking = await BookingRepository.GetBookingByIdAsync(cancelBookingRequestDto.BookingId);
-
-            //// Verify booking belongs to user
-            if (booking.UserId != userId)
-                throw new UnauthorizedAccessException("Unauthorized access to booking");
-
-            // Verify booking can be cancelled
-            if (booking.Status != BookingStatus.CONFIRMED)
-                throw new InvalidOperationException("Only confirmed bookings can be cancelled");
-
-            // Check if show time has passed
-            if (booking.ShowTime.StartTime <= DateTime.UtcNow)
-                throw new InvalidOperationException("Cannot cancel booking for past shows");
-
-            // Update booking status
-            booking.Status = BookingStatus.CANCELLED;
-            await BookingRepository.UpdateBookingAsync(booking);
-
-            // If payment was made, initiate refund
-            if (booking.PaymentId.HasValue)
-            {
-                var payment = await BookingRepository.GetPaymentByIdAsync(booking.PaymentId.Value);
-                payment.PaymentStatus = PaymentStatus.REFUNDED;
-                await BookingRepository.UpdatePaymentAsync(payment);
-            }
-
-            // Send notification
-            await BookingRepository.AddNotificationLogAsync(new NotificationLog
-            {
-                NotificationLogId = Guid.NewGuid(),
-                UserId = userId,
-                Type = NotificationType.EMAIL,
-                Message = $"Booking cancelled for {booking.ShowTime.Movie.Title}",
-                SentAt = DateTime.UtcNow,
-                Status = NotificationStatus.SENT
-            });
-        }
-
-        // ========== BACKGROUND TASKS ==========
-
-        public async Task ReleaseExpiredSeatLocksAsync()
-        {
-            await BookingRepository.ReleaseExpiredLocksAsync();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MovieBooking.Application.Interfaces.Repositories;
+using MovieBooking.Domain.Constants;
 using MovieBooking.Domain.Entities;
 using MovieBooking.Domain.Enums;
 using MovieBooking.Infrastructure.Persistence;
@@ -32,13 +33,18 @@ namespace MovieBooking.Infrastructure.Repositories
             var theatre = await DbContext.Theatres
                 .Include(t => t.TimeSlots)
                 .FirstOrDefaultAsync(t => t.TheatreId == theatreId);
+
             if (theatre == null)
-                throw new InvalidOperationException("Theatre not found");
+                throw new InvalidOperationException(
+                    MessageStrings.TheatreNotFound);
+
             return theatre;
         }
 
         /// <inheritdoc/>
-        public async Task AddTheatreWithTimeSlotsAsync(Theatre theatre, List<TheatreTimeSlot> timeSlots)
+        public async Task AddTheatreWithTimeSlotsAsync(
+            Theatre theatre,
+            List<TheatreTimeSlot> timeSlots)
         {
             DbContext.Theatres.Add(theatre);
             DbContext.TheatreTimeSlots.AddRange(timeSlots);
@@ -56,7 +62,9 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task DeleteTheatreAsync(Theatre theatre)
         {
             if (await TheatreHasActiveScreensAsync(theatre.TheatreId))
-                throw new InvalidOperationException("Cannot deactivate theatre while active screens exist.");
+                throw new InvalidOperationException(
+                    MessageStrings.CannotDeactivateTheatreWithActiveScreens);
+
             theatre.IsActive = false;
             await DbContext.SaveChangesAsync();
         }
@@ -78,21 +86,26 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task DeleteTheatreTimeSlotsAsync(Guid theatreId)
         {
             var timeSlots = await DbContext.TheatreTimeSlots
-                .Where(ts => ts.TheatreId == theatreId).ToListAsync();
+                .Where(ts => ts.TheatreId == theatreId)
+                .ToListAsync();
+
             DbContext.TheatreTimeSlots.RemoveRange(timeSlots);
             await DbContext.SaveChangesAsync();
         }
 
         /// <inheritdoc/>
         public async Task<bool> TheatreHasActiveScreensAsync(Guid theatreId)
-            => await DbContext.Screens.AnyAsync(s => s.TheatreId == theatreId && s.IsActive);
+            => await DbContext.Screens
+                .AnyAsync(s => s.TheatreId == theatreId && s.IsActive);
 
         /// <inheritdoc/>
         public async Task ApproveTheatreAsync(Guid theatreId)
         {
             var theatre = await DbContext.Theatres.FindAsync(theatreId);
+
             theatre.IsActive = true;
             theatre.ApprovalStatus = ApprovalStatus.APPROVED;
+
             await DbContext.SaveChangesAsync();
         }
 
@@ -100,7 +113,9 @@ namespace MovieBooking.Infrastructure.Repositories
         public async Task RejectTheatreAsync(Guid theatreId)
         {
             var theatre = await DbContext.Theatres.FindAsync(theatreId);
+
             theatre.ApprovalStatus = ApprovalStatus.REJECTED;
+
             await DbContext.SaveChangesAsync();
         }
     }

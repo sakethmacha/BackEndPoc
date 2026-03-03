@@ -3,7 +3,7 @@ using MovieBooking.Application.DTOs.Admin;
 
 namespace MovieBooking.Application.Interfaces.Repositories
 {
-    public interface IAdminRepository
+    public interface IRequestRepository
     {
         // Theatre Management
         Task<Guid> CreateTheatreRequestAsync(Theatre theatre, List<TheatreTimeSlot> timeSlots, AdminRequest request);

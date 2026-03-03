@@ -9,11 +9,11 @@ namespace MovieBooking.Api.Controllers
     [ApiController]
     [Route("api/admin")]
     [Authorize(Roles = "Admin")]
-    public class AdminController : ControllerBase
+    public class RequestController : ControllerBase
     {
-        private readonly IAdminService AdminService;
+        private readonly IRequestService AdminService;
 
-        public AdminController(IAdminService adminService)
+        public RequestController(IRequestService adminService)
         {
             AdminService = adminService;
         }

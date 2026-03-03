@@ -262,10 +262,10 @@ namespace MovieBooking.Api
             // Dependency Injection
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-            builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
-            builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
-            builder.Services.AddScoped<IAdminService, AdminService>();
-            builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+            //builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
+            //builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
+            builder.Services.AddScoped<IRequestService, RequestService>();
+            builder.Services.AddScoped<IRequestRepository, RequestRepository>();
 
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<IMovieRepository, MovieRepository>();
