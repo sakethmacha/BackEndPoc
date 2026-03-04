@@ -69,8 +69,13 @@ namespace MovieBooking.Api.Controllers
 
         /// <summary>Adds a new movie</summary>
         [HttpPost]
-        public async Task<IActionResult> AddMovie(AddMovieDto addMovieDto)
+        public async Task<IActionResult> AddMovie([FromForm] AddMovieDto addMovieDto)
         {
+            Console.WriteLine($"Title: {addMovieDto.Title}");
+            Console.WriteLine($"Description: {addMovieDto.Description}");
+            Console.WriteLine($"Duration: {addMovieDto.DurationMinutes}");
+            Console.WriteLine($"ReleaseDate: {addMovieDto.ReleaseDate}");
+            Console.WriteLine($"PosterFile: {addMovieDto.PosterFile?.FileName ?? "NULL"}");
             try
             {
                 await MovieService.AddMovieAsync(addMovieDto);
@@ -94,39 +99,9 @@ namespace MovieBooking.Api.Controllers
             }
         }
 
-        /// <summary>Toggles movie active status</summary>
-        [HttpPut("{movieId}/toggle")]
-        public async Task<IActionResult> ToggleMovie(Guid movieId)
-        {
-            if (movieId == Guid.Empty)
-                return BadRequest(new { message = MessageStrings.InvalidMovieId });
-
-            try
-            {
-                await MovieService.ToggleMovieAsync(movieId);
-
-                return Ok(new
-                {
-                    message = MessageStrings.MovieStatusToggledSuccessfully
-                });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    message = MessageStrings.ErrorTogglingMovie,
-                    error = ex.Message
-                });
-            }
-        }
-
         /// <summary>Updates an existing movie</summary>
         [HttpPut("{movieId}")]
-        public async Task<IActionResult> UpdateMovie(Guid movieId, [FromBody] UpdateMovieDto updateMovieDto)
+        public async Task<IActionResult> UpdateMovie(Guid movieId, [FromForm] UpdateMovieDto updateMovieDto)
         {
             if (movieId == Guid.Empty)
                 return BadRequest(new { message = MessageStrings.InvalidMovieId });

@@ -1,5 +1,4 @@
-﻿using MovieBooking.Domain.Enums;
-namespace MovieBooking.Application.DTOs.Admin
+﻿namespace MovieBooking.Application.DTOs.Admin
 {
     public class AdminRequestDto
     {
@@ -9,6 +8,5 @@ namespace MovieBooking.Application.DTOs.Admin
         public DateTime RequestedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
         public string RequestDetails { get; set; }
-
     }
 }

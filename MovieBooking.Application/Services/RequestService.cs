@@ -9,14 +9,13 @@ namespace MovieBooking.Application.Services
 {
     public class RequestService : IRequestService
     {
-        private readonly IRequestRepository AdminRepository;
+        private readonly IRequestRepository RequestRepository;
 
-        public RequestService(IRequestRepository adminRepository)
+        public RequestService(IRequestRepository requestRepository)
         {
-            AdminRepository = adminRepository;
+            RequestRepository = requestRepository;
         }
 
-        // ===================== THEATRE REQUESTS =====================
 
         public async Task<Guid> RequestTheatreAsync(
             CreateTheatreRequestDto createtheatreRequestDto,
@@ -82,14 +81,14 @@ namespace MovieBooking.Application.Services
                 RequestedAt = DateTime.UtcNow
             };
 
-            return await AdminRepository.CreateTheatreRequestAsync(
+            return await RequestRepository.CreateTheatreRequestAsync(
                 theatre, timeSlots, request);
         }
 
         public async Task<List<TheatreRequestResponseDto>>
-            GetMyTheatreRequestsAsync(Guid adminId)
+            GetTheatreRequestsAsync(Guid adminId)
         {
-            var theatres = await AdminRepository.GetTheatresByAdminAsync(adminId);
+            var theatres = await RequestRepository.GetTheatresByAdminAsync(adminId);
 
             return theatres.Select(t => new TheatreRequestResponseDto
             {
@@ -107,9 +106,9 @@ namespace MovieBooking.Application.Services
         }
 
         public async Task<List<TheatreRequestResponseDto>>
-            GetMyApprovedTheatresAsync(Guid adminId)
+            GetApprovedTheatresAsync(Guid adminId)
         {
-            var theatres = await AdminRepository.GetTheatresByAdminAsync(adminId);
+            var theatres = await RequestRepository.GetTheatresByAdminAsync(adminId);
 
             return theatres
                 .Where(t => t.ApprovalStatus == ApprovalStatus.APPROVED)
@@ -128,13 +127,11 @@ namespace MovieBooking.Application.Services
                 }).ToList();
         }
 
-        // ===================== SCREEN REQUESTS =====================
-
         public async Task<Guid> RequestScreenAsync(
             CreateScreenRequestDto createScreenRequestDto,
             Guid adminId)
         {
-            var theatre = await AdminRepository
+            var theatre = await RequestRepository
                 .GetTheatreByIdAsync(createScreenRequestDto.TheatreId);
 
             if (theatre.CreatedBy != adminId)
@@ -203,14 +200,14 @@ namespace MovieBooking.Application.Services
                 RequestedAt = DateTime.UtcNow
             };
 
-            return await AdminRepository
+            return await RequestRepository
                 .CreateScreenRequestAsync(screen, seats, request);
         }
 
         public async Task<List<ScreenRequestResponseDto>>
-            GetMyScreenRequestsAsync(Guid adminId)
+            GetScreenRequestsAsync(Guid adminId)
         {
-            var screens = await AdminRepository.GetScreensByAdminAsync(adminId);
+            var screens = await RequestRepository.GetScreensByAdminAsync(adminId);
 
             return screens.Select(s => new ScreenRequestResponseDto
             {
@@ -224,9 +221,9 @@ namespace MovieBooking.Application.Services
         }
 
         public async Task<List<ScreenRequestResponseDto>>
-            GetMyApprovedScreensAsync(Guid adminId)
+            GetApprovedScreensAsync(Guid adminId)
         {
-            var screens = await AdminRepository.GetScreensByAdminAsync(adminId);
+            var screens = await RequestRepository.GetScreensByAdminAsync(adminId);
 
             return screens
                 .Where(s => s.ApprovalStatus == ApprovalStatus.APPROVED)
@@ -242,9 +239,9 @@ namespace MovieBooking.Application.Services
         }
 
         public async Task<List<TheatreRequestResponseDto>>
-            GetMyTheatresForScreenAsync(Guid adminId)
+            GetTheatresForScreenAsync(Guid adminId)
         {
-            var theatres = await AdminRepository.GetTheatresByAdminAsync(adminId);
+            var theatres = await RequestRepository.GetTheatresByAdminAsync(adminId);
 
             return theatres
                 .Where(t => t.ApprovalStatus == ApprovalStatus.APPROVED && t.IsActive)

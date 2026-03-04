@@ -11,11 +11,11 @@ namespace MovieBooking.Api.Controllers
     [Authorize(Roles = "Admin")]
     public class RequestController : ControllerBase
     {
-        private readonly IRequestService AdminService;
+        private readonly IRequestService RequestService;
 
-        public RequestController(IRequestService adminService)
+        public RequestController(IRequestService requestService)
         {
-            AdminService = adminService;
+            RequestService = requestService;
         }
 
         private Guid GetAdminId()
@@ -33,23 +33,23 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> RequestTheatre(CreateTheatreRequestDto createTheatreRequestDto)
         {
             var adminId = GetAdminId();
-            var theatreId = await AdminService.RequestTheatreAsync(createTheatreRequestDto, adminId);
+            var theatreId = await RequestService.RequestTheatreAsync(createTheatreRequestDto, adminId);
             return Ok(new { message = "Theatre request submitted successfully", theatreId });
         }
 
         [HttpGet("theatres/requests")]
-        public async Task<IActionResult> GetMyTheatreRequests()
+        public async Task<IActionResult> GetTheatreRequests()
         {
             var adminId = GetAdminId();
-            var requests = await AdminService.GetMyTheatreRequestsAsync(adminId);
+            var requests = await RequestService.GetTheatreRequestsAsync(adminId);
             return Ok(requests);
         }
 
         [HttpGet("theatres/approved")]
-        public async Task<IActionResult> GetMyApprovedTheatres()
+        public async Task<IActionResult> GetApprovedTheatres()
         {
             var adminId = GetAdminId();
-            var theatres = await AdminService.GetMyApprovedTheatresAsync(adminId);
+            var theatres = await RequestService.GetApprovedTheatresAsync(adminId);
             return Ok(theatres);
         }
 
@@ -59,31 +59,31 @@ namespace MovieBooking.Api.Controllers
         public async Task<IActionResult> RequestScreen(CreateScreenRequestDto createScreenRequestDto)
         {
             var adminId = GetAdminId();
-            var screenId = await AdminService.RequestScreenAsync(createScreenRequestDto, adminId);
+            var screenId = await RequestService.RequestScreenAsync(createScreenRequestDto, adminId);
             return Ok(new { message = "Screen request submitted successfully", screenId });
         }
 
         [HttpGet("screens/requests")]
-        public async Task<IActionResult> GetMyScreenRequests()
+        public async Task<IActionResult> GetScreenRequests()
         {
             var adminId = GetAdminId();
-            var requests = await AdminService.GetMyScreenRequestsAsync(adminId);
+            var requests = await RequestService.GetScreenRequestsAsync(adminId);
             return Ok(requests);
         }
 
         [HttpGet("screens/approved")]
-        public async Task<IActionResult> GetMyApprovedScreens()
+        public async Task<IActionResult> GetApprovedScreens()
         {
             var adminId = GetAdminId();
-            var screens = await AdminService.GetMyApprovedScreensAsync(adminId);
+            var screens = await RequestService.GetApprovedScreensAsync(adminId);
             return Ok(screens);
         }
 
         [HttpGet("theatres/for-screen")]
-        public async Task<IActionResult> GetMyTheatresForScreen()
+        public async Task<IActionResult> GetTheatresForScreen()
         {
             var adminId = GetAdminId();
-            var theatres = await AdminService.GetMyTheatresForScreenAsync(adminId);
+            var theatres = await RequestService.GetTheatresForScreenAsync(adminId);
             return Ok(theatres);
         }
     }

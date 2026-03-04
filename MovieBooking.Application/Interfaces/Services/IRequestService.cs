@@ -6,15 +6,15 @@ namespace MovieBooking.Application.Interfaces.Services
     {
         // Theatre Requests
         Task<Guid> RequestTheatreAsync(CreateTheatreRequestDto dto, Guid adminId);
-        Task<List<TheatreRequestResponseDto>> GetMyTheatreRequestsAsync(Guid adminId);
-        Task<List<TheatreRequestResponseDto>> GetMyApprovedTheatresAsync(Guid adminId);
+        Task<List<TheatreRequestResponseDto>> GetTheatreRequestsAsync(Guid adminId);
+        Task<List<TheatreRequestResponseDto>> GetApprovedTheatresAsync(Guid adminId);
 
         // Screen Requests
         Task<Guid> RequestScreenAsync(CreateScreenRequestDto dto, Guid adminId);
-        Task<List<ScreenRequestResponseDto>> GetMyScreenRequestsAsync(Guid adminId);
-        Task<List<ScreenRequestResponseDto>> GetMyApprovedScreensAsync(Guid adminId);
+        Task<List<ScreenRequestResponseDto>> GetScreenRequestsAsync(Guid adminId);
+        Task<List<ScreenRequestResponseDto>> GetApprovedScreensAsync(Guid adminId);
 
         // Get theatres for screen dropdown (only approved theatres of this admin)
-        Task<List<TheatreRequestResponseDto>> GetMyTheatresForScreenAsync(Guid adminId);
+        Task<List<TheatreRequestResponseDto>> GetTheatresForScreenAsync(Guid adminId);
     }
 }
