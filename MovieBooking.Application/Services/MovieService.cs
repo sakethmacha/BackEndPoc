@@ -69,7 +69,6 @@ namespace MovieBooking.Application.Services
         //}
         public async Task AddMovieAsync(AddMovieDto addMovieDto)
         {
-            // ADDED: file saving logic
             string? posterFileName = null;
 
             if (addMovieDto.PosterFile != null && addMovieDto.PosterFile.Length > 0)
@@ -86,7 +85,6 @@ namespace MovieBooking.Application.Services
                 await addMovieDto.PosterFile.CopyToAsync(stream);
             }
 
-            // YOUR EXACT CODE — only PosterUrl value changed
             var movie = new Movie
             {
                 MovieId = Guid.NewGuid(),
@@ -94,7 +92,7 @@ namespace MovieBooking.Application.Services
                 Description = addMovieDto.Description,
                 DurationMinutes = addMovieDto.DurationMinutes,
                 ReleaseDate = addMovieDto.ReleaseDate,
-                PosterUrl = posterFileName,  // CHANGED: saves filename like "abc123.jpg"
+                PosterUrl = posterFileName!,  // saves filename like "abc123.jpg"
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -102,7 +100,6 @@ namespace MovieBooking.Application.Services
             await MovieRepository.AddMovieAsync(movie);
         }
 
-        /// <inheritdoc/>
         //public async Task UpdateMovieAsync(Guid movieId, UpdateMovieDto updateMovieDto)
         //{
         //    var movie = await MovieRepository.GetMovieByIdAsync(movieId);
@@ -117,7 +114,6 @@ namespace MovieBooking.Application.Services
         {
             var movie = await MovieRepository.GetMovieByIdAsync(movieId);
 
-            // ADDED: handle poster file
             if (updateMovieDto.PosterFile != null && updateMovieDto.PosterFile.Length > 0)
             {
                 // Delete old image if exists

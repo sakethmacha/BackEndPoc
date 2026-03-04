@@ -259,14 +259,8 @@ namespace MovieBooking.Api
 
             builder.Services.AddAuthorization();
 
-            // Dependency Injection
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-            //builder.Services.AddScoped<ISuperAdminRepository, SuperAdminRepository>();
-            //builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
-            builder.Services.AddScoped<IRequestService, RequestService>();
             builder.Services.AddScoped<IRequestRepository, RequestRepository>();
-
             builder.Services.AddScoped<IBookingRepository, BookingRepository>();
             builder.Services.AddScoped<IMovieRepository, MovieRepository>();
             builder.Services.AddScoped<ITheatreRepository, TheatreRepository>();
@@ -276,6 +270,8 @@ namespace MovieBooking.Api
             builder.Services.AddScoped<IAdminManagementRepository, AdminManagementRepository>();
             builder.Services.AddScoped<IRequestApprovalRepository, RequestApprovalRepository>();
 
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddScoped<IRequestService, RequestService>();
             builder.Services.AddScoped<IMovieService, MovieService>();
             builder.Services.AddScoped<ITheatreService, TheatreService>();
             builder.Services.AddScoped<IScreenService, ScreenService>();
@@ -310,7 +306,6 @@ namespace MovieBooking.Api
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
             app.UseFastEndpoints();
 
